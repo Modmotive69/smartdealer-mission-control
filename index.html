@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SmartDealer Technologies Inc. — Automotive Software Portfolio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#0a1628;--mid-navy:#1a2f4e;--orange:#ff6b2b;--orange-dark:#e85a1a;--white:#ffffff;--gray-light:#f5f5f5}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',sans-serif;background:var(--white);color:#1a1a2e;line-height:1.6;overflow-x:hidden}
+a{text-decoration:none;color:inherit}
+img{max-width:100%;display:block}
+
+/* ===== NAVBAR ===== */
+.navbar{position:fixed;top:0;left:0;right:0;z-index:1000;background:rgba(10,22,40,0.97);backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,0.08);transition:border-color 0.3s}
+.nav-container{max-width:1200px;margin:0 auto;padding:0 2rem;display:flex;align-items:center;height:70px;gap:1rem}
+.nav-logo{display:flex;flex-direction:column;text-decoration:none;line-height:1.1;flex-shrink:0}
+.logo-main{font-size:1.25rem;font-weight:800;color:#fff;letter-spacing:0.06em}
+.logo-sub{font-size:0.6rem;font-weight:400;color:rgba(255,255,255,0.5);letter-spacing:0.12em;text-transform:uppercase}
+.nav-menu{display:flex;align-items:center;gap:0.25rem;margin-left:auto}
+.nav-item{position:relative}
+.nav-link{display:flex;align-items:center;gap:0.3rem;padding:0.5rem 0.85rem;color:rgba(255,255,255,0.8);font-size:0.875rem;font-weight:600;border-radius:6px;transition:all 0.2s;background:none;border:none;cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap}
+.nav-link:hover,.nav-link.active{color:var(--orange);background:rgba(255,107,43,0.1)}
+.chevron{font-size:0.65rem;transition:transform 0.3s;display:inline-block}
+.nav-cta{display:inline-flex;align-items:center;padding:0.55rem 1.2rem;background:var(--orange);color:#fff;font-size:0.85rem;font-weight:700;border-radius:6px;transition:all 0.2s;margin-left:0.75rem;white-space:nowrap;font-family:'Inter',sans-serif}
+.nav-cta:hover{background:var(--orange-dark);transform:translateY(-1px);box-shadow:0 4px 15px rgba(255,107,43,0.4)}
+
+/* ===== MEGA MENU ===== */
+.mega-menu{position:absolute;top:calc(100% + 10px);left:50%;transform:translateX(-60%) translateY(-6px);width:740px;background:var(--navy);border:1px solid rgba(255,255,255,0.1);border-radius:14px;box-shadow:0 25px 70px rgba(0,0,0,0.6),0 0 0 1px rgba(255,107,43,0.08);opacity:0;visibility:hidden;transition:all 0.22s ease;pointer-events:none}
+.has-mega:hover .mega-menu,.has-mega.open .mega-menu{opacity:1;visibility:visible;transform:translateX(-60%) translateY(0);pointer-events:all}
+.mega-inner{display:grid;grid-template-columns:1fr 1fr auto;gap:0;padding:1.75rem 1.75rem 1.25rem}
+.mega-col{padding:0 1.25rem}
+.mega-col:first-child{padding-left:0;border-right:1px solid rgba(255,255,255,0.06)}
+.mega-col:nth-child(2){border-right:1px solid rgba(255,255,255,0.06)}
+.mega-col:last-child{padding-right:0;min-width:180px}
+.mega-col-header{font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.13em;color:var(--orange);margin-bottom:0.875rem;padding-bottom:0.5rem;border-bottom:1px solid rgba(255,107,43,0.18)}
+.mega-item{display:flex;align-items:flex-start;gap:0.7rem;padding:0.55rem 0.6rem;border-radius:8px;text-decoration:none;transition:all 0.18s;margin-bottom:0.1rem}
+.mega-item:hover{background:rgba(255,107,43,0.09)}
+.mega-icon{font-size:1.15rem;flex-shrink:0;margin-top:0.1rem;line-height:1}
+.mega-item-name{font-size:0.82rem;font-weight:700;color:#fff;margin-bottom:0.12rem;line-height:1.2}
+.mega-item-desc{font-size:0.72rem;color:rgba(255,255,255,0.5);line-height:1.35}
+.mega-featured{display:flex;flex-direction:column;align-items:flex-start;gap:0.4rem;padding:1rem;border-radius:10px;background:linear-gradient(135deg,rgba(255,107,43,0.12),rgba(255,107,43,0.05));border:1px solid rgba(255,107,43,0.2);text-decoration:none;transition:all 0.2s}
+.mega-featured:hover{background:linear-gradient(135deg,rgba(255,107,43,0.2),rgba(255,107,43,0.1));border-color:rgba(255,107,43,0.4)}
+.mega-icon-lg{font-size:1.8rem;line-height:1}
+.mega-badge{display:inline-block;font-size:0.65rem;font-weight:700;background:rgba(255,107,43,0.15);color:var(--orange);padding:0.2rem 0.5rem;border-radius:20px;border:1px solid rgba(255,107,43,0.3);margin-top:0.2rem;text-transform:uppercase;letter-spacing:0.05em}
+.mega-footer{border-top:1px solid rgba(255,255,255,0.06);padding:0.875rem 1.75rem;display:flex;justify-content:flex-end}
+.mega-footer a{color:var(--orange);font-size:0.82rem;font-weight:700;transition:opacity 0.2s}
+.mega-footer a:hover{opacity:0.75}
+
+/* ===== HAMBURGER ===== */
+.hamburger{display:none;flex-direction:column;gap:5px;background:none;border:none;cursor:pointer;padding:6px;margin-left:auto}
+.hamburger span{display:block;width:24px;height:2px;background:#fff;border-radius:2px;transition:all 0.3s ease}
+.hamburger.active span:nth-child(1){transform:rotate(45deg) translate(5px,5px)}
+.hamburger.active span:nth-child(2){opacity:0;transform:translateX(-8px)}
+.hamburger.active span:nth-child(3){transform:rotate(-45deg) translate(5px,-5px)}
+
+@media(max-width:900px){
+  .hamburger{display:flex}
+  .nav-menu{position:fixed;top:70px;left:0;right:0;bottom:0;background:var(--navy);flex-direction:column;align-items:stretch;gap:0;padding:1rem 1rem 2rem;overflow-y:auto;transform:translateX(100%);transition:transform 0.3s ease;border-top:1px solid rgba(255,255,255,0.08)}
+  .nav-menu.open{transform:translateX(0)}
+  .nav-item{width:100%}
+  .nav-link{width:100%;justify-content:space-between;padding:0.875rem 1rem;border-radius:8px;font-size:0.95rem}
+  .mega-menu{position:static;transform:none !important;width:100%;box-shadow:none;border:none;border-radius:10px;opacity:1;visibility:visible;pointer-events:all;max-height:0;overflow:hidden;transition:max-height 0.4s ease;background:rgba(255,255,255,0.04);margin-top:0.25rem}
+  .has-mega.open .mega-menu{max-height:900px}
+  .mega-inner{grid-template-columns:1fr;padding:1rem}
+  .mega-col{padding:0 0 1rem 0;border:none !important}
+  .mega-col:last-child{padding-bottom:0}
+  .nav-cta{margin:0.75rem 0 0;text-align:center;padding:0.875rem;border-radius:8px;font-size:0.95rem}
+}
+
+/* ===== ANIMATIONS ===== */
+.fade-up{opacity:0;transform:translateY(28px);transition:opacity 0.6s ease,transform 0.6s ease}
+.fade-up.visible{opacity:1;transform:translateY(0)}
+
+/* ===== HERO ===== */
+.hero{min-height:100vh;background:linear-gradient(135deg,rgba(10,22,40,0.85) 0%,rgba(26,47,78,0.75) 100%),url("hero-smartdealer.png") center center / cover no-repeat;display:flex;align-items:center;padding:8rem 2rem 5rem;position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 60% 40%,rgba(255,107,43,0.08) 0%,transparent 70%);pointer-events:none}
+.hero-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.03) 1px,transparent 1px);background-size:60px 60px;pointer-events:none;opacity:0.5}
+.hero-container{max-width:1200px;margin:0 auto;width:100%;position:relative;z-index:1}
+.hero-eyebrow{display:inline-flex;align-items:center;gap:0.5rem;font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.15em;color:var(--orange);background:rgba(255,107,43,0.12);border:1px solid rgba(255,107,43,0.25);padding:0.4rem 1rem;border-radius:20px;margin-bottom:1.5rem}
+.hero h1{font-size:clamp(2rem,4.5vw,3.5rem);font-weight:800;color:#fff;line-height:1.15;margin-bottom:1.25rem;max-width:780px}
+.hero h1 span{color:var(--orange)}
+.hero-sub{font-size:1.15rem;color:rgba(255,255,255,0.7);max-width:600px;margin-bottom:2.5rem;line-height:1.7}
+.hero-btns{display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:3.5rem}
+.btn-primary{display:inline-flex;align-items:center;padding:0.875rem 2rem;background:var(--orange);color:#fff;font-weight:700;font-size:0.95rem;border-radius:8px;transition:all 0.2s;border:2px solid transparent}
+.btn-primary:hover{background:var(--orange-dark);transform:translateY(-2px);box-shadow:0 8px 25px rgba(255,107,43,0.4)}
+.btn-outline{display:inline-flex;align-items:center;padding:0.875rem 2rem;background:transparent;color:#fff;font-weight:700;font-size:0.95rem;border-radius:8px;transition:all 0.2s;border:2px solid rgba(255,255,255,0.4)}
+.btn-outline:hover{border-color:#fff;background:rgba(255,255,255,0.1)}
+.hero-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1.5rem;max-width:700px}
+.stat-item{text-align:center}
+.stat-number{font-size:2rem;font-weight:800;color:var(--orange);line-height:1;display:block}
+.stat-label{font-size:0.75rem;color:rgba(255,255,255,0.6);margin-top:0.25rem;text-transform:uppercase;letter-spacing:0.05em;font-weight:600}
+@media(max-width:600px){.hero-stats{grid-template-columns:repeat(2,1fr)}.hero h1{font-size:1.9rem}}
+
+/* ===== TRUST BAR ===== */
+.trust-bar{background:var(--gray-light);padding:2.5rem 2rem;border-bottom:1px solid #e5e5e5}
+.trust-container{max-width:1200px;margin:0 auto}
+.trust-label{text-align:center;font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:#888;margin-bottom:1.5rem}
+.trust-brands{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:1.5rem 2.5rem}
+.brand-badge{padding:0.5rem 1.25rem;background:#fff;border:1px solid #e0e0e0;border-radius:8px;font-size:0.8rem;font-weight:700;color:#444;letter-spacing:0.05em;transition:all 0.2s;white-space:nowrap}
+.brand-badge:hover{border-color:var(--orange);color:var(--orange);transform:translateY(-1px)}
+
+/* ===== SECTION COMMONS ===== */
+.section{padding:5rem 2rem}
+.section-container{max-width:1200px;margin:0 auto}
+.section-eyebrow{font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.14em;color:var(--orange);margin-bottom:0.75rem}
+.section h2{font-size:clamp(1.75rem,3.5vw,2.75rem);font-weight:800;line-height:1.2;margin-bottom:1rem}
+.section-sub{font-size:1.05rem;color:rgba(255,255,255,0.7);max-width:640px;margin-bottom:3rem;line-height:1.65}
+.section-sub-dark{font-size:1.05rem;color:#555;max-width:640px;margin-bottom:3rem;line-height:1.65}
+
+/* ===== PROBLEM SECTION ===== */
+.problem-section{background:#fff;padding:5rem 2rem}
+.problem-section h2{color:var(--navy)}
+.problem-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;margin-top:2.5rem}
+.problem-card{background:var(--gray-light);border-radius:12px;padding:2rem;border:1px solid #e8e8e8;transition:all 0.3s}
+.problem-card:hover{border-color:var(--orange);box-shadow:0 8px 30px rgba(255,107,43,0.12);transform:translateY(-3px)}
+.problem-icon{font-size:2.25rem;margin-bottom:1rem}
+.problem-card h3{font-size:1.05rem;font-weight:800;color:var(--navy);margin-bottom:0.6rem}
+.problem-card p{font-size:0.875rem;color:#555;line-height:1.6}
+.problem-card .accent{color:var(--orange);font-weight:700}
+@media(max-width:768px){.problem-cards{grid-template-columns:1fr}}
+
+/* ===== PORTFOLIO SECTION ===== */
+.portfolio-section{background:var(--navy);padding:5.5rem 2rem}
+.portfolio-section h2{color:#fff}
+.portfolio-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;margin-top:3rem}
+.portfolio-card{background:var(--mid-navy);border:1px solid rgba(255,255,255,0.08);border-radius:14px;overflow:hidden;transition:all 0.3s;display:flex;flex-direction:column}
+.portfolio-card:hover{border-color:rgba(255,107,43,0.4);transform:translateY(-4px);box-shadow:0 16px 50px rgba(0,0,0,0.4)}
+.portfolio-card-img{width:100%;height:180px;object-fit:cover;display:block;background:rgba(255,255,255,0.04)}
+.portfolio-card-body{padding:1.5rem;display:flex;flex-direction:column;flex:1}
+.portfolio-card h3{font-size:1.1rem;font-weight:800;color:#fff;margin-bottom:0.4rem}
+.portfolio-card p{font-size:0.82rem;color:rgba(255,255,255,0.6);line-height:1.55;flex:1;margin-bottom:1.25rem}
+.btn-card{display:inline-flex;align-items:center;gap:0.3rem;padding:0.55rem 1.1rem;background:rgba(255,107,43,0.12);color:var(--orange);border:1px solid rgba(255,107,43,0.3);border-radius:6px;font-size:0.8rem;font-weight:700;transition:all 0.2s;align-self:flex-start}
+.btn-card:hover{background:var(--orange);color:#fff;border-color:var(--orange)}
+@media(max-width:900px){.portfolio-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:600px){.portfolio-grid{grid-template-columns:1fr}}
+
+/* ===== FOUNDER SECTION ===== */
+.founder-section{background:var(--gray-light);padding:5.5rem 2rem}
+.founder-section h2{color:var(--navy);margin-bottom:1.5rem}
+.founder-text{font-size:1.05rem;color:#444;line-height:1.8;max-width:800px;margin-bottom:3rem}
+.timeline{display:flex;gap:0;margin-bottom:3rem;flex-wrap:wrap}
+.timeline-item{flex:1;min-width:120px;text-align:center;position:relative}
+.timeline-item::before{content:'';position:absolute;top:18px;left:50%;right:-50%;height:2px;background:linear-gradient(90deg,var(--orange),rgba(255,107,43,0.3));z-index:0}
+.timeline-item:last-child::before{display:none}
+.timeline-dot{width:38px;height:38px;border-radius:50%;background:var(--orange);color:#fff;font-size:0.7rem;font-weight:800;display:flex;align-items:center;justify-content:center;margin:0 auto 0.5rem;position:relative;z-index:1}
+.timeline-label{font-size:0.75rem;font-weight:700;color:var(--navy)}
+.btn-linkedin{display:inline-flex;align-items:center;gap:0.5rem;padding:0.75rem 1.5rem;background:var(--navy);color:#fff;border-radius:8px;font-weight:700;font-size:0.9rem;transition:all 0.2s}
+.btn-linkedin:hover{background:var(--mid-navy);transform:translateY(-1px)}
+
+/* ===== CONTACT SECTION ===== */
+.contact-section{background:var(--navy);padding:5.5rem 2rem;position:relative;overflow:hidden}
+.contact-section::before{content:'';position:absolute;top:-50%;right:-10%;width:600px;height:600px;background:radial-gradient(circle,rgba(255,107,43,0.08) 0%,transparent 60%);pointer-events:none}
+.contact-section h2{color:#fff;margin-bottom:0.5rem}
+.contact-sub{color:rgba(255,255,255,0.6);margin-bottom:3rem;font-size:1rem}
+.contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:3rem;max-width:1000px}
+.contact-col h3{font-size:1rem;font-weight:700;color:var(--orange);margin-bottom:1rem;text-transform:uppercase;letter-spacing:0.08em;font-size:0.8rem}
+.contact-col h4{font-size:1.15rem;font-weight:800;color:#fff;margin-bottom:0.6rem}
+.contact-col p{font-size:0.875rem;color:rgba(255,255,255,0.6);line-height:1.65;margin-bottom:1.25rem}
+.contact-form{display:flex;flex-direction:column;gap:0.875rem}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:0.875rem}
+.form-field{display:flex;flex-direction:column;gap:0.3rem}
+.form-field label{font-size:0.75rem;font-weight:600;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:0.08em}
+.form-field input,.form-field select,.form-field textarea{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:0.7rem 1rem;color:#fff;font-family:'Inter',sans-serif;font-size:0.875rem;transition:border-color 0.2s;outline:none}
+.form-field input:focus,.form-field select:focus,.form-field textarea:focus{border-color:var(--orange)}
+.form-field select option{background:var(--navy);color:#fff}
+.form-field textarea{resize:vertical;min-height:90px}
+.btn-submit{padding:0.875rem 2rem;background:var(--orange);color:#fff;font-weight:700;font-size:0.95rem;border:none;border-radius:8px;cursor:pointer;transition:all 0.2s;font-family:'Inter',sans-serif}
+.btn-submit:hover{background:var(--orange-dark);transform:translateY(-1px)}
+@media(max-width:768px){.contact-grid{grid-template-columns:1fr}.form-row{grid-template-columns:1fr}}
+
+/* ===== FOOTER ===== */
+.footer{background:#060f1c;color:rgba(255,255,255,0.65);padding:4rem 2rem 2rem}
+.footer-container{max-width:1200px;margin:0 auto}
+.footer-top{display:grid;grid-template-columns:280px 1fr;gap:4rem;margin-bottom:3rem}
+.footer-logo{display:flex;flex-direction:column;line-height:1.1;margin-bottom:0.75rem}
+.footer-tagline{font-size:0.875rem;color:rgba(255,255,255,0.45);margin-top:0.5rem;font-style:italic}
+.footer-cols{display:grid;grid-template-columns:repeat(3,1fr);gap:2rem}
+.footer-col h4{font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:var(--orange);margin-bottom:1rem}
+.footer-col ul{list-style:none}
+.footer-col ul li{margin-bottom:0.5rem}
+.footer-col ul li a,.footer-col a{font-size:0.85rem;color:rgba(255,255,255,0.55);transition:color 0.2s}
+.footer-col ul li a:hover,.footer-col a:hover{color:var(--orange)}
+.footer-col p{font-size:0.82rem;line-height:1.7;color:rgba(255,255,255,0.45)}
+.footer-bottom{border-top:1px solid rgba(255,255,255,0.07);padding-top:1.5rem;text-align:center;font-size:0.78rem;color:rgba(255,255,255,0.3)}
+@media(max-width:768px){.footer-top{grid-template-columns:1fr}.footer-cols{grid-template-columns:1fr 1fr}}
+@media(max-width:480px){.footer-cols{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<!-- ===== NAVBAR ===== -->
+<nav class="navbar" id="navbar">
+  <div class="nav-container">
+    <a href="index.html" class="nav-logo">
+      <span class="logo-main">SMARTDEALER</span>
+      <span class="logo-sub">Technologies Inc.</span>
+    </a>
+    <button class="hamburger" id="hamburger" aria-label="Toggle menu">
+      <span></span><span></span><span></span>
+    </button>
+    <div class="nav-menu" id="navMenu">
+      <div class="nav-item has-mega" id="megaItem">
+        <button class="nav-link mega-trigger" id="megaTrigger" aria-expanded="false">
+          Portfolio <span class="chevron">▾</span>
+        </button>
+        <div class="mega-menu" id="megaMenu">
+          <div class="mega-inner">
+            <div class="mega-col">
+              <div class="mega-col-header">PartSites LLC</div>
+              <a href="partsites.html" class="mega-item">
+                <span class="mega-icon">🛒</span>
+                <div>
+                  <div class="mega-item-name">PartSites (ENVY PRO)</div>
+                  <div class="mega-item-desc">OEM parts &amp; accessories eStore</div>
+                </div>
+              </a>
+              <a href="partsites.html#epic" class="mega-item">
+                <span class="mega-icon">🔧</span>
+                <div>
+                  <div class="mega-item-name">EPIC Widget</div>
+                  <div class="mega-item-desc">True parts catalog widget for dealer sites</div>
+                </div>
+              </a>
+              <a href="partsites.html#wholesale" class="mega-item">
+                <span class="mega-icon">🏭</span>
+                <div>
+                  <div class="mega-item-name">ENVY Wholesale</div>
+                  <div class="mega-item-desc">B2B wholesale parts platform</div>
+                </div>
+              </a>
+              <a href="marketplace.html" class="mega-item">
+                <span class="mega-icon">🏪</span>
+                <div>
+                  <div class="mega-item-name">MARKETPLACE</div>
+                  <div class="mega-item-desc">National OEM parts destination</div>
+                </div>
+              </a>
+            </div>
+            <div class="mega-col">
+              <div class="mega-col-header">InDesign Data LLC</div>
+              <a href="dmsconnect.html" class="mega-item">
+                <span class="mega-icon">🔌</span>
+                <div>
+                  <div class="mega-item-name">DMSconnect</div>
+                  <div class="mega-item-desc">Bidirectional DMS data pipeline for ISVs</div>
+                </div>
+              </a>
+              <a href="dmsbackups.html" class="mega-item">
+                <span class="mega-icon">🛡️</span>
+                <div>
+                  <div class="mega-item-name">DMSbackups</div>
+                  <div class="mega-item-desc">Daily DMS backup &amp; cyberattack protection</div>
+                </div>
+              </a>
+              <a href="docevolution.html" class="mega-item">
+                <span class="mega-icon">📄</span>
+                <div>
+                  <div class="mega-item-name">DocEvolution</div>
+                  <div class="mega-item-desc">Cloud document management &amp; digital signatures</div>
+                </div>
+              </a>
+            </div>
+            <div class="mega-col">
+              <div class="mega-col-header">Featured</div>
+              <a href="engage360.html" class="mega-featured">
+                <span class="mega-icon-lg">🎯</span>
+                <div class="mega-item-name" style="color:#fff;font-size:1rem;margin-bottom:0.3rem">ENGAGE360</div>
+                <div class="mega-item-desc" style="color:rgba(255,255,255,0.6);font-size:0.78rem">In-store 4D accessory sales platform. 155% PNVR increase.</div>
+                <span class="mega-badge">JD Power Verified</span>
+              </a>
+            </div>
+          </div>
+          <div class="mega-footer">
+            <a href="index.html#portfolio">View Full Portfolio →</a>
+          </div>
+        </div>
+      </div>
+      <a href="index.html#about" class="nav-link">About</a>
+      <a href="index.html#contact" class="nav-link">Contact</a>
+      <a href="index.html#contact" class="nav-cta">Schedule a Demo</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ===== HERO ===== -->
+<section class="hero">
+  <div class="hero-grid"></div>
+  <div class="hero-container">
+    <div class="fade-up">
+      <div class="hero-eyebrow">🚗 Automotive Software Portfolio</div>
+      <h1>The Automotive Software Group Behind the Industry's Most <span>Proven Platforms</span></h1>
+      <p class="hero-sub">30 years. 15,000+ installations. $500M+ in dealer sales. Built by the founders of Parts.com.</p>
+      <div class="hero-btns">
+        <a href="#contact" class="btn-primary">Schedule a Demo</a>
+        <a href="#portfolio" class="btn-outline">Explore Portfolio</a>
+      </div>
+    </div>
+    <div class="hero-stats fade-up">
+      <div class="stat-item">
+        <span class="stat-number"><span data-target="30" data-suffix="+">0</span></span>
+        <span class="stat-label">Years</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-number"><span data-target="15000" data-suffix="+">0</span></span>
+        <span class="stat-label">Installations</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-number">$<span data-target="500" data-suffix="M+">0</span></span>
+        <span class="stat-label">In Sales</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-number"><span data-target="4.8" data-suffix="/5">0</span></span>
+        <span class="stat-label">Trust Score</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== TRUST BAR ===== -->
+<section class="trust-bar">
+  <div class="trust-container">
+    <p class="trust-label">Portfolio companies with proven partnerships across the world's leading automotive brands</p>
+    <div class="trust-brands fade-up">
+      <div class="brand-badge">Ford</div>
+      <div class="brand-badge">Kia</div>
+      <div class="brand-badge">Subaru</div>
+      <div class="brand-badge">Volkswagen</div>
+      <div class="brand-badge">Nissan</div>
+      <div class="brand-badge">Chrysler / Mopar</div>
+      <div class="brand-badge">Cox Automotive</div>
+      <div class="brand-badge">J.D. Power</div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== PROBLEM SECTION ===== -->
+<section class="problem-section section">
+  <div class="section-container">
+    <div class="fade-up">
+      <p class="section-eyebrow">Why SmartDealer</p>
+      <h2>Three Big Problems. Three Specialized Solutions.</h2>
+    </div>
+    <div class="problem-cards">
+      <div class="problem-card fade-up">
+        <div class="problem-icon">🔥</div>
+        <h3>Accessory Revenue Leaking</h3>
+        <p>70–80% of buyers never buy accessories from the dealer. <span class="accent">ENGAGE360 captures it back</span> with a 155% verified PNVR increase.</p>
+      </div>
+      <div class="problem-card fade-up">
+        <div class="problem-icon">🔒</div>
+        <h3>DMS Data Locked Away</h3>
+        <p><span class="accent">B.A.R.T.</span> unlocks bidirectional, real-time DMS data across every department — Sales, Service, Parts, F&I, and Accounting.</p>
+      </div>
+      <div class="problem-card fade-up">
+        <div class="problem-icon">📉</div>
+        <h3>Parts eCommerce Underperforming</h3>
+        <p>PartSites' <span class="accent">PAGETECH engine</span> generates 75,000 SEO pages per brand — the highest-ranked parts eStore on the net.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== PORTFOLIO SECTION ===== -->
+<section class="portfolio-section" id="portfolio">
+  <div class="section-container">
+    <div class="fade-up">
+      <p class="section-eyebrow">Our Products</p>
+      <h2 style="color:#fff">Specialized Platforms. Proven Results.</h2>
+      <p class="section-sub">SmartDealer owns and operates a portfolio of industry-leading automotive software companies — each purpose-built for a different layer of the dealership.</p>
+    </div>
+    <div class="portfolio-grid">
+      <div class="portfolio-card fade-up">
+        <img src="https://smartdealer.com/wp-content/uploads/2025/05/engage360-billboard.png" alt="ENGAGE360" class="portfolio-card-img" loading="lazy">
+        <div class="portfolio-card-body">
+          <h3>ENGAGE360</h3>
+          <p>In-store 4D accessory sales platform. 155% PNVR increase. JD Power verified.</p>
+          <a href="engage360.html" class="btn-card">Learn More →</a>
+        </div>
+      </div>
+      <div class="portfolio-card fade-up">
+        <img src="https://smartdealer.com/wp-content/uploads/2025/05/Envy-billboard-copy-1.png" alt="PartSites ENVY PRO" class="portfolio-card-img" loading="lazy">
+        <div class="portfolio-card-body">
+          <h3>PartSites (ENVY PRO)</h3>
+          <p>The #1 OEM parts &amp; accessories eStore. 75,000 SEO pages per brand. $500M+ in sales.</p>
+          <a href="partsites.html" class="btn-card">Learn More →</a>
+        </div>
+      </div>
+      <div class="portfolio-card fade-up">
+        <img src="https://smartdealer.com/wp-content/uploads/2025/11/new-smartdealer-tko.png" alt="DMSbackups" class="portfolio-card-img" loading="lazy">
+        <div class="portfolio-card-body">
+          <h3>DMSbackups</h3>
+          <p>Daily DMS backup powered by B.A.R.T. Protects against cyberattacks. From $400/mo.</p>
+          <a href="dmsbackups.html" class="btn-card">Learn More →</a>
+        </div>
+      </div>
+      <div class="portfolio-card fade-up">
+        <img src="https://smartdealer.com/wp-content/uploads/2025/05/dealerbox-bilboard-1.png" alt="DocEvolution" class="portfolio-card-img" loading="lazy">
+        <div class="portfolio-card-body">
+          <h3>DocEvolution</h3>
+          <p>Cloud document management — scan, capture, sign, automate. White-label capable.</p>
+          <a href="docevolution.html" class="btn-card">Learn More →</a>
+        </div>
+      </div>
+      <div class="portfolio-card fade-up">
+        <img src="https://smartdealer.com/wp-content/uploads/2025/05/DMSconnect-bilboard.png" alt="DMSconnect" class="portfolio-card-img" loading="lazy">
+        <div class="portfolio-card-body">
+          <h3>DMSconnect</h3>
+          <p>Bidirectional DMS data pipeline for ISVs. CDK, Reynolds, Tekion, and more.</p>
+          <a href="dmsconnect.html" class="btn-card">Learn More →</a>
+        </div>
+      </div>
+      <div class="portfolio-card fade-up">
+        <img src="https://smartdealer.com/wp-content/uploads/2025/05/Envy-billboard-copy-1.png" alt="MARKETPLACE" class="portfolio-card-img" loading="lazy">
+        <div class="portfolio-card-body">
+          <h3>MARKETPLACE</h3>
+          <p>National OEM parts destination. Free to OEMs with 100+ dealer signups.</p>
+          <a href="marketplace.html" class="btn-card">Learn More →</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FOUNDER SECTION ===== -->
+<section class="founder-section section" id="about">
+  <div class="section-container">
+    <div class="fade-up">
+      <p class="section-eyebrow">Our Story</p>
+      <h2>Built by the People Who Invented Automotive eCommerce</h2>
+      <p class="founder-text">In 1994, Scott Anderson built one of the world's first automotive parts eCommerce platforms. In 1998, Parts.com reached a $1B market cap on NASDAQ and became AutoNation's exclusive online fulfillment partner. He then built TradeMotion — the first SaaS platform for OEM parts &amp; accessories — powering Volkswagen, Subaru, Kia, Nissan, and Chrysler's first Mopar DTC store. Today, SmartDealer Technologies is the holding company for InDesign Data LLC and PartSites LLC — representing 30 years of automotive e-commerce expertise.</p>
+    </div>
+    <div class="timeline fade-up">
+      <div class="timeline-item">
+        <div class="timeline-dot">1994</div>
+        <div class="timeline-label">First Parts eCommerce</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot">1998</div>
+        <div class="timeline-label">Parts.com $1B NASDAQ</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot">2005</div>
+        <div class="timeline-label">TradeMotion SaaS</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot">2010</div>
+        <div class="timeline-label">InDesign Data LLC</div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot">Today</div>
+        <div class="timeline-label">SmartDealer Portfolio</div>
+      </div>
+    </div>
+    <a href="https://linkedin.com/in/smartdealer" target="_blank" class="btn-linkedin fade-up">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="margin-right:0.4rem"><path d="M19 3a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h14m-.5 15.5v-5.3a3.26 3.26 0 00-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 011.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 001.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 00-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg>
+      Connect on LinkedIn
+    </a>
+  </div>
+</section>
+
+<!-- ===== CONTACT SECTION ===== -->
+<section class="contact-section" id="contact">
+  <div class="section-container">
+    <div class="fade-up">
+      <h2>Ready to grow your dealership's revenue?</h2>
+      <p class="contact-sub">Schedule a demo or reach out to our team. We'll show you exactly what's possible.</p>
+    </div>
+    <div class="contact-grid">
+      <div class="contact-col fade-up">
+        <h3>For Dealers</h3>
+        <h4>Schedule a Demo</h4>
+        <p>See ENGAGE360, PartSites, DMSbackups, or any of our products live. No pitch — just a real demonstration of what we can do for your store.</p>
+        <form class="contact-form" onsubmit="return false">
+          <div class="form-row">
+            <div class="form-field">
+              <label>Name</label>
+              <input type="text" placeholder="John Smith">
+            </div>
+            <div class="form-field">
+              <label>Email</label>
+              <input type="email" placeholder="john@dealer.com">
+            </div>
+          </div>
+          <div class="form-field">
+            <label>Company</label>
+            <input type="text" placeholder="Smith Ford">
+          </div>
+          <div class="form-field">
+            <label>Role</label>
+            <select>
+              <option value="">Select your role</option>
+              <option>Dealer</option>
+              <option>OEM</option>
+              <option>ISV</option>
+              <option>Investor</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label>Message</label>
+            <textarea placeholder="What are you looking to solve?"></textarea>
+          </div>
+          <button type="submit" class="btn-submit">Send Message</button>
+        </form>
+      </div>
+      <div class="contact-col fade-up" style="display:flex;flex-direction:column;justify-content:center">
+        <h3>For OEMs &amp; Enterprise</h3>
+        <h4>Contact Our Team</h4>
+        <p>OEM programs, enterprise licensing, white-label opportunities, and ISV API partnerships. We work directly with manufacturers, dealer groups, and software vendors.</p>
+        <div style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:1.5rem;margin-top:1rem">
+          <p style="font-size:0.85rem;color:rgba(255,255,255,0.5);margin-bottom:0.75rem">📍 Headquarters</p>
+          <p style="font-size:0.95rem;color:#fff;font-weight:600;line-height:1.6">175 SW 7th Street, Suite 2010<br>Miami, FL 33130</p>
+          <a href="https://linkedin.com/in/smartdealer" target="_blank" style="display:inline-flex;align-items:center;gap:0.4rem;margin-top:1rem;color:var(--orange);font-weight:700;font-size:0.875rem">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h14m-.5 15.5v-5.3a3.26 3.26 0 00-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 011.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 001.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 00-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg>
+            linkedin.com/in/smartdealer
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer class="footer">
+  <div class="footer-container">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <div class="footer-logo">
+          <span class="logo-main" style="font-size:1.1rem">SMARTDEALER</span>
+          <span class="logo-sub" style="font-size:0.58rem">Technologies Inc.</span>
+        </div>
+        <p class="footer-tagline">Smart Products. Smart Business.</p>
+      </div>
+      <div class="footer-cols">
+        <div class="footer-col">
+          <h4>Portfolio</h4>
+          <ul>
+            <li><a href="engage360.html">ENGAGE360</a></li>
+            <li><a href="partsites.html">PartSites</a></li>
+            <li><a href="dmsbackups.html">DMSbackups</a></li>
+            <li><a href="docevolution.html">DocEvolution</a></li>
+            <li><a href="dmsconnect.html">DMSconnect</a></li>
+            <li><a href="marketplace.html">MARKETPLACE</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Company</h4>
+          <ul>
+            <li><a href="index.html#about">About</a></li>
+            <li><a href="#">Blog</a></li>
+            <li><a href="index.html#contact">Contact</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Contact</h4>
+          <p>175 SW 7th Street<br>Suite 2010<br>Miami, FL 33130</p>
+          <a href="https://linkedin.com/in/smartdealer" target="_blank" style="display:inline-block;margin-top:0.75rem">linkedin.com/in/smartdealer</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 SmartDealer Technologies Inc. | InDesign Data LLC | PartSites LLC</p>
+    </div>
+  </div>
+</footer>
+
+<script>
+// ===== MEGA MENU =====
+const megaItem = document.getElementById('megaItem');
+const megaTrigger = document.getElementById('megaTrigger');
+const hamburger = document.getElementById('hamburger');
+const navMenu = document.getElementById('navMenu');
+
+if (megaTrigger) {
+  megaTrigger.addEventListener('click', (e) => {
+    if (window.innerWidth <= 900) {
+      e.preventDefault();
+      megaItem.classList.toggle('open');
+      megaTrigger.setAttribute('aria-expanded', megaItem.classList.contains('open'));
+      const chevron = megaTrigger.querySelector('.chevron');
+      if (chevron) chevron.style.transform = megaItem.classList.contains('open') ? 'rotate(180deg)' : '';
+    }
+  });
+}
+
+hamburger.addEventListener('click', () => {
+  hamburger.classList.toggle('active');
+  navMenu.classList.toggle('open');
+});
+
+document.querySelectorAll('.mega-item, .nav-link:not(.mega-trigger), .nav-cta').forEach(link => {
+  link.addEventListener('click', () => {
+    if (window.innerWidth <= 900) {
+      hamburger.classList.remove('active');
+      navMenu.classList.remove('open');
+    }
+  });
+});
+
+// Close mega on outside click (desktop)
+document.addEventListener('click', (e) => {
+  if (!megaItem.contains(e.target)) megaItem.classList.remove('open');
+});
+
+// Navbar scroll
+window.addEventListener('scroll', () => {
+  const nav = document.getElementById('navbar');
+  nav.style.borderBottomColor = window.scrollY > 50 ? 'rgba(255,107,43,0.2)' : 'rgba(255,255,255,0.08)';
+});
+
+// ===== ANIMATIONS =====
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach((entry, i) => {
+    if (entry.isIntersecting) {
+      setTimeout(() => entry.target.classList.add('visible'), i * 80);
+    }
+  });
+}, { threshold: 0.08 });
+document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+
+// ===== COUNTERS =====
+function animateCounter(el) {
+  const target = parseFloat(el.dataset.target);
+  const suffix = el.dataset.suffix || '';
+  const duration = 1800;
+  const start = performance.now();
+  const isDecimal = !Number.isInteger(target);
+  function update(now) {
+    const progress = Math.min((now - start) / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    const val = eased * target;
+    el.textContent = (isDecimal ? val.toFixed(1) : Math.round(val).toLocaleString()) + suffix;
+    if (progress < 1) requestAnimationFrame(update);
+  }
+  requestAnimationFrame(update);
+}
+const cObserver = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting && !entry.target.dataset.animated) {
+      entry.target.dataset.animated = '1';
+      animateCounter(entry.target);
+    }
+  });
+}, { threshold: 0.5 });
+document.querySelectorAll('[data-target]').forEach(el => cObserver.observe(el));
+</script>
+</body>
+</html>
