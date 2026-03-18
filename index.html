@@ -76,24 +76,31 @@ img{max-width:100%;display:block}
 .fade-up.visible{opacity:1;transform:translateY(0)}
 
 /* ===== HERO ===== */
-.hero{min-height:100vh;background:linear-gradient(135deg,rgba(10,22,40,0.85) 0%,rgba(26,47,78,0.75) 100%),url("hero-smartdealer.png") center center / cover no-repeat;display:flex;align-items:center;padding:8rem 2rem 5rem;position:relative;overflow:hidden}
-.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 80% 60% at 60% 40%,rgba(255,107,43,0.08) 0%,transparent 70%);pointer-events:none}
-.hero-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.03) 1px,transparent 1px);background-size:60px 60px;pointer-events:none;opacity:0.5}
-.hero-container{max-width:1200px;margin:0 auto;width:100%;position:relative;z-index:1}
+.hero{min-height:700px;height:100vh;display:flex;align-items:center;padding:8rem 2rem 5rem;position:relative;overflow:hidden;color:#fff}
+.hero-slider{position:absolute;inset:0;z-index:0}
+.hero-slider .slider-track, .hero-slider .slide, .hero-slider .slide-bg, .hero-slider .slide-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.hero-slider .slide-overlay{position:absolute;inset:0;background:linear-gradient(135deg,rgba(10,22,40,0.85) 0%,rgba(26,47,78,0.75) 100%)}
+.hero-slider .slide{opacity:0;transition:opacity 0.8s ease;z-index:1}
+.hero-slider .slide.active{opacity:1;z-index:2}
+.hero-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.03) 1px,transparent 1px);background-size:60px 60px;pointer-events:none;opacity:0.5;z-index:2}
+.hero-container{max-width:1200px;margin:0 auto;width:100%;position:relative;z-index:3;display:flex;flex-direction:column;justify-content:center;height:100%}
 .hero-eyebrow{display:inline-flex;align-items:center;gap:0.5rem;font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.15em;color:var(--orange);background:rgba(255,107,43,0.12);border:1px solid rgba(255,107,43,0.25);padding:0.4rem 1rem;border-radius:20px;margin-bottom:1.5rem}
 .hero h1{font-size:clamp(2rem,4.5vw,3.5rem);font-weight:800;color:#fff;line-height:1.15;margin-bottom:1.25rem;max-width:780px}
 .hero h1 span{color:var(--orange)}
 .hero-sub{font-size:1.15rem;color:rgba(255,255,255,0.7);max-width:600px;margin-bottom:2.5rem;line-height:1.7}
-.hero-btns{display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:3.5rem}
+.hero-btns{display:flex;gap:1rem;flex-wrap:wrap}
 .btn-primary{display:inline-flex;align-items:center;padding:0.875rem 2rem;background:var(--orange);color:#fff;font-weight:700;font-size:0.95rem;border-radius:8px;transition:all 0.2s;border:2px solid transparent}
 .btn-primary:hover{background:var(--orange-dark);transform:translateY(-2px);box-shadow:0 8px 25px rgba(255,107,43,0.4)}
 .btn-outline{display:inline-flex;align-items:center;padding:0.875rem 2rem;background:transparent;color:#fff;font-weight:700;font-size:0.95rem;border-radius:8px;transition:all 0.2s;border:2px solid rgba(255,255,255,0.4)}
 .btn-outline:hover{border-color:#fff;background:rgba(255,255,255,0.1)}
-.hero-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1.5rem;max-width:700px}
-.stat-item{text-align:center}
-.stat-number{font-size:2rem;font-weight:800;color:var(--orange);line-height:1;display:block}
-.stat-label{font-size:0.75rem;color:rgba(255,255,255,0.6);margin-top:0.25rem;text-transform:uppercase;letter-spacing:0.05em;font-weight:600}
-@media(max-width:600px){.hero-stats{grid-template-columns:repeat(2,1fr)}.hero h1{font-size:1.9rem}}
+.slider-controls-bottom{position:absolute;bottom:4rem;left:50%;transform:translateX(-50%);z-index:4;display:flex;flex-direction:column;align-items:center;gap:1.5rem}
+.slider-dots{display:flex;gap:0.75rem}
+.dot{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,0.3);border:none;cursor:pointer;transition:all 0.3s}
+.dot.active{background:#fff;transform:scale(1.2)}
+.slider-arrows{display:flex;gap:1.5rem}
+.slider-arrow{width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s}
+.slider-arrow:hover{background:rgba(255,255,255,0.2)}
+@media(max-width:600px){.hero h1{font-size:1.9rem}}
 
 /* ===== TRUST BAR ===== */
 .trust-bar{background:var(--gray-light);padding:2.5rem 2rem;border-bottom:1px solid #e5e5e5}
@@ -297,10 +304,40 @@ img{max-width:100%;display:block}
 
 <!-- ===== HERO ===== -->
 <section class="hero">
+  <div class="slider-wrap hero-slider">
+    <div class="slider-track" id="sliderTrack">
+
+      <div class="slide active">
+        <video class="slide-video" autoplay muted loop playsinline><source src="slider-showroom.mp4" type="video/mp4"></video>
+        <div class="slide-overlay"></div>
+      </div>
+
+      <div class="slide">
+        <div class="slide-bg" style="background-image:url('https://smartdealer.com/wp-content/uploads/2025/05/Envy-billboard-copy-1.png')"></div>
+        <div class="slide-overlay"></div>
+      </div>
+
+      <div class="slide">
+        <div class="slide-bg" style="background-image:url('https://smartdealer.com/wp-content/uploads/2025/11/new-smartdealer-tko.png')"></div>
+        <div class="slide-overlay"></div>
+      </div>
+
+      <div class="slide">
+        <div class="slide-bg" style="background-image:url('https://smartdealer.com/wp-content/uploads/2025/05/dealerbox-bilboard-1.png')"></div>
+        <div class="slide-overlay"></div>
+      </div>
+
+      <div class="slide">
+        <div class="slide-bg" style="background-image:url('https://smartdealer.com/wp-content/uploads/2025/05/DMSconnect-bilboard.png')"></div>
+        <div class="slide-overlay"></div>
+      </div>
+    </div>
+  </div>
+
   <div class="hero-grid"></div>
   <div class="hero-container">
     <div class="fade-up">
-      <div class="hero-eyebrow">🚗 Automotive Software Portfolio</div>
+      <div class="hero-eyebrow">Accelerate Your Dealership</div>
       <h1>The Automotive Software Group Behind the Industry's Most <span>Proven Platforms</span></h1>
       <p class="hero-sub">30 years. 15,000+ installations. $500M+ in dealer sales. Built by the founders of Parts.com.</p>
       <div class="hero-btns">
@@ -308,23 +345,19 @@ img{max-width:100%;display:block}
         <a href="#portfolio" class="btn-outline">Explore Portfolio</a>
       </div>
     </div>
-    <div class="hero-stats fade-up">
-      <div class="stat-item">
-        <span class="stat-number"><span data-target="30" data-suffix="+">0</span></span>
-        <span class="stat-label">Years</span>
-      </div>
-      <div class="stat-item">
-        <span class="stat-number"><span data-target="15000" data-suffix="+">0</span></span>
-        <span class="stat-label">Installations</span>
-      </div>
-      <div class="stat-item">
-        <span class="stat-number">$<span data-target="500" data-suffix="M+">0</span></span>
-        <span class="stat-label">In Sales</span>
-      </div>
-      <div class="stat-item">
-        <span class="stat-number"><span data-target="4.8" data-suffix="/5">0</span></span>
-        <span class="stat-label">Trust Score</span>
-      </div>
+    
+    <div class="slider-controls-bottom">
+        <div class="slider-dots" id="sliderDots">
+            <button class="dot active" onclick="goToSlide(0)"></button>
+            <button class="dot" onclick="goToSlide(1)"></button>
+            <button class="dot" onclick="goToSlide(2)"></button>
+            <button class="dot" onclick="goToSlide(3)"></button>
+            <button class="dot" onclick="goToSlide(4)"></button>
+        </div>
+        <div class="slider-arrows">
+            <button class="slider-arrow slider-prev" onclick="prevSlide()"><i class="fa-solid fa-chevron-left"></i></button>
+            <button class="slider-arrow slider-next" onclick="nextSlide()"><i class="fa-solid fa-chevron-right"></i></button>
+        </div>
     </div>
   </div>
 </section>
@@ -343,80 +376,6 @@ img{max-width:100%;display:block}
       <div class="brand-badge" style="font-size:0.65rem;font-weight:800;color:#444;padding:0.8rem 1rem;letter-spacing:0.04em;">COX AUTOMOTIVE</div>
       <div class="brand-badge" style="font-size:0.65rem;font-weight:800;color:#444;padding:0.8rem 1rem;letter-spacing:0.04em;">J.D. POWER</div>
     </div>
-  </div>
-</section>
-
-
-<!-- ===== PRODUCT SLIDER ===== -->
-<section class="slider-section">
-  <div class="slider-wrap">
-    <div class="slider-track" id="sliderTrack">
-
-      <div class="slide active">
-        <video class="slide-video" autoplay muted loop playsinline><source src="slider-showroom.mp4" type="video/mp4"></video>
-        <div class="slide-overlay"></div>
-        <div class="slide-content">
-          <span class="slide-eyebrow">In-Store Accessory Sales</span>
-          <h2 class="slide-title">ENGAGE360</h2>
-          <p class="slide-sub">155% PNVR increase. $125K/mo per dealer. JD Power verified across 600+ Ford dealers.</p>
-          <a href="engage360.html" class="slide-btn">Explore ENGAGE360 →</a>
-        </div>
-      </div>
-
-      <div class="slide">
-        <div class="slide-bg" style="background-image:url('https://smartdealer.com/wp-content/uploads/2025/05/Envy-billboard-copy-1.png')"></div>
-        <div class="slide-overlay"></div>
-        <div class="slide-content">
-          <span class="slide-eyebrow">Parts & Accessories eCommerce</span>
-          <h2 class="slide-title">PartSites</h2>
-          <p class="slide-sub">75,000 SEO pages per brand. $500M+ in dealer sales. No transaction fees. No contracts.</p>
-          <a href="partsites.html" class="slide-btn">Explore PartSites →</a>
-        </div>
-      </div>
-
-      <div class="slide">
-        <div class="slide-bg" style="background-image:url('https://smartdealer.com/wp-content/uploads/2025/11/new-smartdealer-tko.png')"></div>
-        <div class="slide-overlay"></div>
-        <div class="slide-content">
-          <span class="slide-eyebrow">DMS Data Protection</span>
-          <h2 class="slide-title">DMSbackups</h2>
-          <p class="slide-sub">Daily backup powered by B.A.R.T. 54 CDK file types. 67 Reynolds file types. From $400/mo.</p>
-          <a href="dmsbackups.html" class="slide-btn">Explore DMSbackups →</a>
-        </div>
-      </div>
-
-      <div class="slide">
-        <div class="slide-bg" style="background-image:url('https://smartdealer.com/wp-content/uploads/2025/05/dealerbox-bilboard-1.png')"></div>
-        <div class="slide-overlay"></div>
-        <div class="slide-content">
-          <span class="slide-eyebrow">Cloud Document Management</span>
-          <h2 class="slide-title">DocEvolution</h2>
-          <p class="slide-sub">Scan, capture, sign, automate. Go paperless without breaking your workflow.</p>
-          <a href="docevolution.html" class="slide-btn">Explore DocEvolution →</a>
-        </div>
-      </div>
-
-      <div class="slide">
-        <div class="slide-bg" style="background-image:url('https://smartdealer.com/wp-content/uploads/2025/05/DMSconnect-bilboard.png')"></div>
-        <div class="slide-overlay"></div>
-        <div class="slide-content">
-          <span class="slide-eyebrow">DMS Data Integration</span>
-          <h2 class="slide-title">DMSconnect</h2>
-          <p class="slide-sub">Bidirectional DMS pipeline for ISVs. Push & pull across Sales, Service, Parts, Accounting, CRM.</p>
-          <a href="dmsconnect.html" class="slide-btn">Explore DMSconnect →</a>
-        </div>
-      </div>
-
-    </div>
-    <div class="slider-dots" id="sliderDots">
-      <button class="dot active" onclick="goToSlide(0)"></button>
-      <button class="dot" onclick="goToSlide(1)"></button>
-      <button class="dot" onclick="goToSlide(2)"></button>
-      <button class="dot" onclick="goToSlide(3)"></button>
-      <button class="dot" onclick="goToSlide(4)"></button>
-    </div>
-    <button class="slider-arrow slider-prev" onclick="prevSlide()"><i class="fa-solid fa-chevron-left"></i></button>
-    <button class="slider-arrow slider-next" onclick="nextSlide()"><i class="fa-solid fa-chevron-right"></i></button>
   </div>
 </section>
 
@@ -732,50 +691,42 @@ const cObserver = new IntersectionObserver((entries) => {
 document.querySelectorAll('[data-target]').forEach(el => cObserver.observe(el));
 </script>
 
-  <script>
-    // Product Slider
+  // ===== SLIDER =====
     let currentSlide = 0;
-    const totalSlides = 5;
+    const slides = document.querySelectorAll('.hero-slider .slide');
+    const dots = document.querySelectorAll('.dot');
+    const totalSlides = slides.length;
     let sliderInterval;
 
     function goToSlide(n) {
-      currentSlide = n;
-      document.getElementById('sliderTrack').style.transform = `translateX(-${n * 100}%)`;
-      document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === n));
-      document.querySelectorAll('.slide').forEach((s, i) => s.classList.toggle('active', i === n));
-      resetInterval();
+        if (n < 0) n = totalSlides - 1;
+        if (n >= totalSlides) n = 0;
+        currentSlide = n;
+        
+        slides.forEach((s, i) => s.classList.toggle('active', i === n));
+        dots.forEach((d, i) => d.classList.toggle('active', i === n));
+        
+        resetInterval();
     }
 
-    function nextSlide() { goToSlide((currentSlide + 1) % totalSlides); }
-    function prevSlide() { goToSlide((currentSlide - 1 + totalSlides) % totalSlides); }
+    function nextSlide() { goToSlide(currentSlide + 1); }
+    function prevSlide() { goToSlide(currentSlide - 1); }
 
     function resetInterval() {
-      clearInterval(sliderInterval);
-      sliderInterval = setInterval(nextSlide, 5000);
+        clearInterval(sliderInterval);
+        sliderInterval = setInterval(nextSlide, 5000);
     }
 
     // Init
-    document.querySelectorAll('.slide')[0].classList.add('active');
-    resetInterval();
+    if(slides.length > 0) {
+        slides[0].classList.add('active');
+        dots[0].classList.add('active');
+        resetInterval();
+    }
   </script>
 
   <script>
-    let currentSlide = 0;
-    const totalSlides = 5;
-    let sliderInterval;
-    function goToSlide(n) {
-      currentSlide = n;
-      document.getElementById('sliderTrack').style.transform = `translateX(-${n * 100}%)`;
-      document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === n));
-      resetInterval();
-    }
-    function nextSlide() { goToSlide((currentSlide + 1) % totalSlides); }
-    function prevSlide() { goToSlide((currentSlide - 1 + totalSlides) % totalSlides); }
-    function resetInterval() {
-      clearInterval(sliderInterval);
-      sliderInterval = setInterval(nextSlide, 5000);
-    }
-    resetInterval();
+    // This script block is a duplicate from a previous merge, removing it.
   </script>
 </body>
 </html>
