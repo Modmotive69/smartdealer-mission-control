@@ -346,6 +346,80 @@ img{max-width:100%;display:block}
   </div>
 </section>
 
+
+<!-- ===== PRODUCT SLIDER ===== -->
+<section class="slider-section">
+  <div class="slider-wrap">
+    <div class="slider-track" id="sliderTrack">
+
+      <div class="slide active">
+        <video class="slide-video" autoplay muted loop playsinline><source src="slider-showroom.mp4" type="video/mp4"></video>
+        <div class="slide-overlay"></div>
+        <div class="slide-content">
+          <span class="slide-eyebrow">In-Store Accessory Sales</span>
+          <h2 class="slide-title">ENGAGE360</h2>
+          <p class="slide-sub">155% PNVR increase. $125K/mo per dealer. JD Power verified across 600+ Ford dealers.</p>
+          <a href="engage360.html" class="slide-btn">Explore ENGAGE360 →</a>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="slide-bg" style="background-image:url('https://smartdealer.com/wp-content/uploads/2025/05/Envy-billboard-copy-1.png')"></div>
+        <div class="slide-overlay"></div>
+        <div class="slide-content">
+          <span class="slide-eyebrow">Parts & Accessories eCommerce</span>
+          <h2 class="slide-title">PartSites</h2>
+          <p class="slide-sub">75,000 SEO pages per brand. $500M+ in dealer sales. No transaction fees. No contracts.</p>
+          <a href="partsites.html" class="slide-btn">Explore PartSites →</a>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="slide-bg" style="background-image:url('https://smartdealer.com/wp-content/uploads/2025/11/new-smartdealer-tko.png')"></div>
+        <div class="slide-overlay"></div>
+        <div class="slide-content">
+          <span class="slide-eyebrow">DMS Data Protection</span>
+          <h2 class="slide-title">DMSbackups</h2>
+          <p class="slide-sub">Daily backup powered by B.A.R.T. 54 CDK file types. 67 Reynolds file types. From $400/mo.</p>
+          <a href="dmsbackups.html" class="slide-btn">Explore DMSbackups →</a>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="slide-bg" style="background-image:url('https://smartdealer.com/wp-content/uploads/2025/05/dealerbox-bilboard-1.png')"></div>
+        <div class="slide-overlay"></div>
+        <div class="slide-content">
+          <span class="slide-eyebrow">Cloud Document Management</span>
+          <h2 class="slide-title">DocEvolution</h2>
+          <p class="slide-sub">Scan, capture, sign, automate. Go paperless without breaking your workflow.</p>
+          <a href="docevolution.html" class="slide-btn">Explore DocEvolution →</a>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="slide-bg" style="background-image:url('https://smartdealer.com/wp-content/uploads/2025/05/DMSconnect-bilboard.png')"></div>
+        <div class="slide-overlay"></div>
+        <div class="slide-content">
+          <span class="slide-eyebrow">DMS Data Integration</span>
+          <h2 class="slide-title">DMSconnect</h2>
+          <p class="slide-sub">Bidirectional DMS pipeline for ISVs. Push & pull across Sales, Service, Parts, Accounting, CRM.</p>
+          <a href="dmsconnect.html" class="slide-btn">Explore DMSconnect →</a>
+        </div>
+      </div>
+
+    </div>
+    <div class="slider-dots" id="sliderDots">
+      <button class="dot active" onclick="goToSlide(0)"></button>
+      <button class="dot" onclick="goToSlide(1)"></button>
+      <button class="dot" onclick="goToSlide(2)"></button>
+      <button class="dot" onclick="goToSlide(3)"></button>
+      <button class="dot" onclick="goToSlide(4)"></button>
+    </div>
+    <button class="slider-arrow slider-prev" onclick="prevSlide()"><i class="fa-solid fa-chevron-left"></i></button>
+    <button class="slider-arrow slider-next" onclick="nextSlide()"><i class="fa-solid fa-chevron-right"></i></button>
+  </div>
+</section>
+
 <!-- ===== PROBLEM SECTION ===== -->
 <section class="problem-section section">
   <div class="section-container">
@@ -682,6 +756,25 @@ document.querySelectorAll('[data-target]').forEach(el => cObserver.observe(el));
 
     // Init
     document.querySelectorAll('.slide')[0].classList.add('active');
+    resetInterval();
+  </script>
+
+  <script>
+    let currentSlide = 0;
+    const totalSlides = 5;
+    let sliderInterval;
+    function goToSlide(n) {
+      currentSlide = n;
+      document.getElementById('sliderTrack').style.transform = `translateX(-${n * 100}%)`;
+      document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === n));
+      resetInterval();
+    }
+    function nextSlide() { goToSlide((currentSlide + 1) % totalSlides); }
+    function prevSlide() { goToSlide((currentSlide - 1 + totalSlides) % totalSlides); }
+    function resetInterval() {
+      clearInterval(sliderInterval);
+      sliderInterval = setInterval(nextSlide, 5000);
+    }
     resetInterval();
   </script>
 </body>
