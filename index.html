@@ -875,6 +875,82 @@ if(sessionStorage.getItem("mc_ok")==="1"){
                 </div>
             </header>
 
+            <!-- Lead Flow Visual -->
+            <div class="bg-gray-900 rounded-xl border border-gray-800 p-6 mb-6 overflow-x-auto">
+                <h3 class="text-sm font-bold text-gray-300 uppercase tracking-wider mb-5">Lead Intelligence Flow</h3>
+                <div style="min-width:700px">
+                    <div style="display:flex;align-items:center;gap:0;justify-content:flex-start">
+                        <!-- Apollo -->
+                        <div style="background:#1a1a2e;border:1px solid #6366f1;border-radius:12px;padding:14px 18px;text-align:center;min-width:100px">
+                            <div style="font-size:20px;margin-bottom:4px">🔍</div>
+                            <div style="color:#818cf8;font-size:12px;font-weight:700">Apollo.io</div>
+                            <div style="color:#6b7280;font-size:10px">Lead Source</div>
+                        </div>
+                        <!-- Arrow -->
+                        <div style="display:flex;align-items:center;padding:0 4px">
+                            <svg width="32" height="16" viewBox="0 0 32 16"><path d="M0 8h24M20 4l8 4-8 4" stroke="#4b5563" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>
+                        </div>
+                        <!-- Export -->
+                        <div style="background:#1a1a2e;border:1px solid #4b5563;border-radius:12px;padding:14px 18px;text-align:center;min-width:100px">
+                            <div style="font-size:20px;margin-bottom:4px">📤</div>
+                            <div style="color:#e5e7eb;font-size:12px;font-weight:700">Export CSV</div>
+                            <div style="color:#6b7280;font-size:10px">Data Out</div>
+                        </div>
+                        <!-- Arrow -->
+                        <div style="display:flex;align-items:center;padding:0 4px">
+                            <svg width="32" height="16" viewBox="0 0 32 16"><path d="M0 8h24M20 4l8 4-8 4" stroke="#4b5563" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>
+                        </div>
+                        <!-- Cleansing -->
+                        <div style="background:#1a1a2e;border:1px solid #f59e0b;border-radius:12px;padding:14px 18px;text-align:center;min-width:100px">
+                            <div style="font-size:20px;margin-bottom:4px">🧹</div>
+                            <div style="color:#fbbf24;font-size:12px;font-weight:700">Lead Cleansing</div>
+                            <div style="color:#6b7280;font-size:10px">Filter unqualified</div>
+                        </div>
+                        <!-- Arrow -->
+                        <div style="display:flex;align-items:center;padding:0 4px">
+                            <svg width="32" height="16" viewBox="0 0 32 16"><path d="M0 8h24M20 4l8 4-8 4" stroke="#4b5563" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>
+                        </div>
+                        <!-- HubSpot -->
+                        <div style="background:#1a1a2e;border:1px solid #f97316;border-radius:12px;padding:14px 18px;text-align:center;min-width:100px">
+                            <div style="font-size:20px;margin-bottom:4px">💛</div>
+                            <div style="color:#fb923c;font-size:12px;font-weight:700">HubSpot</div>
+                            <div style="color:#6b7280;font-size:10px">CRM / Deals</div>
+                        </div>
+                    </div>
+
+                    <!-- Smith.ai branch -->
+                    <div style="display:flex;align-items:center;margin-top:16px;padding-left:0">
+                        <!-- Smith -->
+                        <div style="background:#1a1a2e;border:1px solid #22c55e;border-radius:12px;padding:14px 18px;text-align:center;min-width:100px">
+                            <div style="font-size:20px;margin-bottom:4px">📞</div>
+                            <div style="color:#4ade80;font-size:12px;font-weight:700">Smith.ai</div>
+                            <div style="color:#6b7280;font-size:10px">Inbound Calls</div>
+                        </div>
+                        <!-- Arrow -->
+                        <div style="display:flex;align-items:center;padding:0 4px">
+                            <svg width="32" height="16" viewBox="0 0 32 16"><path d="M0 8h24M20 4l8 4-8 4" stroke="#4b5563" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>
+                        </div>
+                        <!-- HubSpot branch target -->
+                        <div style="background:#1a1a2e;border:1px solid #f97316;border-radius:12px;padding:14px 18px;text-align:center;min-width:100px">
+                            <div style="font-size:20px;margin-bottom:4px">💛</div>
+                            <div style="color:#fb923c;font-size:12px;font-weight:700">HubSpot</div>
+                            <div style="color:#6b7280;font-size:10px">Contact Created</div>
+                        </div>
+                    </div>
+
+                    <!-- Labels -->
+                    <div style="display:flex;justify-content:space-between;margin-top:16px;padding:0 4px">
+                        <div style="display:flex;gap:12px;flex-wrap:wrap">
+                            <span style="display:flex;align-items:center;gap:4px;font-size:10px;color:#6b7280"><span style="width:8px;height:8px;background:#6366f1;border-radius:50%;display:inline-block"></span> Apollo (source)</span>
+                            <span style="display:flex;align-items:center;gap:4px;font-size:10px;color:#6b7280"><span style="width:8px;height:8px;background:#fbbf24;border-radius:50%;display:inline-block"></span> Cleansing (filter)</span>
+                            <span style="display:flex;align-items:center;gap:4px;font-size:10px;color:#6b7280"><span style="width:8px;height:8px;background:#f97316;border-radius:50%;display:inline-block"></span> HubSpot (CRM)</span>
+                            <span style="display:flex;align-items:center;gap:4px;font-size:10px;color:#6b7280"><span style="width:8px;height:8px;background:#4ade80;border-radius:50%;display:inline-block"></span> Smith.ai (calls)</span>
+                        </div>
+                        <a href="https://app.hubspot.com/deals/" target="_blank" style="font-size:10px;color:#6366f1;text-decoration:none">Manage in HubSpot →</a>
+                    </div>
+                </div>
+            </div>
+
             <!-- Stats row -->
             <div class="grid grid-cols-3 gap-4 mb-6">
                 <div class="bg-gray-900 rounded-xl p-4 border border-gray-800 text-center">
