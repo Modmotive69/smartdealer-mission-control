@@ -1,785 +1,1988 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SmartDealer Mission Control — Access</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PenPen | Mission Control</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://kit.fontawesome.com/a0d1bd4a2c.js" crossorigin="anonymous"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #0B1120; color: #f3f4f6; }
+        .kanban-col { min-height: 400px; }
+        .task-card { background-color: #1e293b; border: 1px solid #334155; }
+        .nav-btn { cursor: pointer; transition: all 0.2s; }
+        .nav-btn:hover { background-color: #1f2937; color: white; }
+        .active-tab { background-color: #dc2626; color: white; font-weight: bold; }
+        .active-tab:hover { background-color: #b91c1c; }
+        .tab-content { display: none; }
+        .tab-active { display: block; }
+    </style>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐧</text></svg>">
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Inter', -apple-system, sans-serif; background: #0B1120; color: #f3f4f6; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
-  .gate-wrap { text-align: center; max-width: 400px; width: 90%; padding: 40px; background: #1e293b; border: 1px solid #334155; border-radius: 16px; }
-  .gate-wrap h1 { font-size: 20px; font-weight: 700; margin-bottom: 8px; color: white; }
-  .gate-wrap p { font-size: 13px; color: #9ca3af; margin-bottom: 28px; }
-  .gate-wrap input { width: 100%; padding: 12px 16px; background: #0B1120; border: 1px solid #334155; border-radius: 8px; color: white; font-size: 14px; outline: none; margin-bottom: 12px; }
-  .gate-wrap input:focus { border-color: #ff6b2b; }
-  .gate-wrap button { width: 100%; padding: 12px; background: #ff6b2b; color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; }
-  .gate-wrap button:hover { background: #e85a1a; }
-  .gate-wrap .error { color: #ef4444; font-size: 12px; margin-top: 10px; display: none; }
-  .main-content { display: none; }
+#mc-gate{position:fixed;inset:0;z-index:99999;background:#0B1120;display:flex;align-items:center;justify-content:center}
+#mc-gate-inner{text-align:center;max-width:400px;width:90%;padding:48px 40px;background:#1e293b;border:1px solid #334155;border-radius:16px}
+#mc-gate-inner h1{font-size:24px;font-weight:800;margin-bottom:8px;color:#fff}
+#mc-gate-inner p{font-size:13px;color:#9ca3af;margin-bottom:32px}
+#mc-pwd{width:100%;padding:14px 16px;background:#0B1120;border:1px solid #334155;border-radius:8px;color:#fff;font-size:15px;outline:none;margin-bottom:12px}
+#mc-pwd:focus{border-color:#ff6b2b}
+#mc-go{width:100%;padding:14px;background:#ff6b2b;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer}
+#mc-go:hover{background:#e85a1a}
+#mc-err{color:#ef4444;font-size:13px;margin-top:12px;display:none}
 </style>
 </head>
-<body>
+<body class="flex h-screen overflow-hidden">
 
-<div class="gate-wrap" id="gate">
-  <h1>🔐 Mission Control</h1>
-  <p>Enter your access password to continue</p>
-  <input type="password" id="pwd" placeholder="Enter password" onkeydown="if(event.key==='Enter')checkPwd()">
-  <button onclick="checkPwd()">Access Dashboard</button>
-  <p class="error" id="err">Incorrect password. Try again.</p>
+<div id="mc-gate">
+  <div id="mc-gate-inner">
+    <h1>🔐 Mission Control</h1>
+    <p>Enter your access password to continue</p>
+    <input type="password" id="mc-pwd" placeholder="Password" onkeydown="if(event.key==='Enter')mcChk()">
+    <button id="mc-go" onclick="mcChk()">Access Dashboard</button>
+    <p id="mc-err">Incorrect password.</p>
+  </div>
 </div>
-
-<div id="main" class="main-content"></div>
-
 <script>
-const CORRECT = 'smartdealer2026';
-const STORAGE_KEY = 'mc_access_granted';
-
-function checkPwd() {
-  const v = document.getElementById('pwd').value;
-  if (v === CORRECT) {
-    sessionStorage.setItem(STORAGE_KEY, '1');
-    document.getElementById('gate').style.display = 'none';
-    document.getElementById('main').style.display = 'block';
-    document.getElementById('main').innerHTML = document.getElementById('real-content').innerHTML;
+function mcChk(){
+  var v=document.getElementById("mc-pwd").value;
+  if(v==="smartdealer2026"){
+    sessionStorage.setItem("mc_ok","1");
+    document.getElementById("mc-gate").style.display="none";
   } else {
-    document.getElementById('err').style.display = 'block';
+    document.getElementById("mc-err").style.display="block";
   }
 }
-
-// If already authenticated this session, skip gate
-if (sessionStorage.getItem(STORAGE_KEY) === '1') {
-  document.getElementById('gate').style.display = 'none';
-  document.getElementById('main').style.display = 'block';
-  document.getElementById('main').innerHTML = document.getElementById('real-content').innerHTML;
+if(sessionStorage.getItem("mc_ok")==="1"){
+  document.getElementById("mc-gate").style.display="none";
 }
 </script>
 
-<!-- Real content hidden until authenticated -->
-<div id="real-content" style="display:none">
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SmartDealer Technologies Inc. — Automotive Software Portfolio</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
-<style>
-:root{--navy:#0a1628;--mid-navy:#1a2f4e;--orange:#ff6b2b;--orange-dark:#e85a1a;--white:#ffffff;--gray-light:#f5f5f5}
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
-body{font-family:'Inter',sans-serif;background:var(--white);color:#1a1a2e;line-height:1.6;overflow-x:hidden}
-a{text-decoration:none;color:inherit}
-img{max-width:100%;display:block}
-
-/* ===== NAVBAR ===== */
-.navbar{position:fixed;top:0;left:0;right:0;z-index:1000;background:rgba(10,22,40,0.97);backdrop-filter:blur(12px);border-bottom:1px solid rgba(255,255,255,0.08);transition:border-color 0.3s}
-.nav-container{max-width:1200px;margin:0 auto;padding:0 2rem;display:flex;align-items:center;height:70px;gap:1rem}
-.nav-logo{display:flex;flex-direction:column;text-decoration:none;line-height:1.1;flex-shrink:0}
-.logo-main{font-size:1.25rem;font-weight:800;color:#fff;letter-spacing:0.06em}
-.logo-sub{font-size:0.6rem;font-weight:400;color:rgba(255,255,255,0.5);letter-spacing:0.12em;text-transform:uppercase}
-.nav-menu{display:flex;align-items:center;gap:0.25rem;margin-left:auto}
-.nav-item{position:relative}
-.nav-link{display:flex;align-items:center;gap:0.3rem;padding:0.5rem 0.85rem;color:rgba(255,255,255,0.8);font-size:0.875rem;font-weight:600;border-radius:6px;transition:all 0.2s;background:none;border:none;cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap}
-.nav-link:hover,.nav-link.active{color:var(--orange);background:rgba(255,107,43,0.1)}
-.chevron{font-size:0.65rem;transition:transform 0.3s;display:inline-block}
-.nav-cta{display:inline-flex;align-items:center;padding:0.55rem 1.2rem;background:var(--orange);color:#fff;font-size:0.85rem;font-weight:700;border-radius:6px;transition:all 0.2s;margin-left:0.75rem;white-space:nowrap;font-family:'Inter',sans-serif}
-.nav-cta:hover{background:var(--orange-dark);transform:translateY(-1px);box-shadow:0 4px 15px rgba(255,107,43,0.4)}
-
-/* ===== MEGA MENU ===== */
-.mega-menu{position:absolute;top:calc(100% + 10px);left:50%;transform:translateX(-60%) translateY(-6px);width:740px;background:var(--navy);border:1px solid rgba(255,255,255,0.1);border-radius:14px;box-shadow:0 25px 70px rgba(0,0,0,0.6),0 0 0 1px rgba(255,107,43,0.08);opacity:0;visibility:hidden;transition:all 0.22s ease;pointer-events:none}
-.has-mega:hover .mega-menu,.has-mega.open .mega-menu{opacity:1;visibility:visible;transform:translateX(-60%) translateY(0);pointer-events:all}
-.mega-inner{display:grid;grid-template-columns:1fr 1fr auto;gap:0;padding:1.75rem 1.75rem 1.25rem}
-.mega-col{padding:0 1.25rem}
-.mega-col:first-child{padding-left:0;border-right:1px solid rgba(255,255,255,0.06)}
-.mega-col:nth-child(2){border-right:1px solid rgba(255,255,255,0.06)}
-.mega-col:last-child{padding-right:0;min-width:180px}
-.mega-col-header{font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.13em;color:var(--orange);margin-bottom:0.875rem;padding-bottom:0.5rem;border-bottom:1px solid rgba(255,107,43,0.18)}
-.mega-item{display:flex;align-items:flex-start;gap:0.7rem;padding:0.55rem 0.6rem;border-radius:8px;text-decoration:none;transition:all 0.18s;margin-bottom:0.1rem}
-.mega-item:hover{background:rgba(255,107,43,0.09)}
-.mega-icon{font-size:1.15rem;flex-shrink:0;margin-top:0.1rem;line-height:1}
-.mega-item-name{font-size:0.82rem;font-weight:700;color:#fff;margin-bottom:0.12rem;line-height:1.2}
-.mega-item-desc{font-size:0.72rem;color:rgba(255,255,255,0.5);line-height:1.35}
-.mega-featured{display:flex;flex-direction:column;align-items:flex-start;gap:0.4rem;padding:1rem;border-radius:10px;background:linear-gradient(135deg,rgba(255,107,43,0.12),rgba(255,107,43,0.05));border:1px solid rgba(255,107,43,0.2);text-decoration:none;transition:all 0.2s}
-.mega-featured:hover{background:linear-gradient(135deg,rgba(255,107,43,0.2),rgba(255,107,43,0.1));border-color:rgba(255,107,43,0.4)}
-.mega-icon-lg{font-size:1.8rem;line-height:1}
-.mega-badge{display:inline-block;font-size:0.65rem;font-weight:700;background:rgba(255,107,43,0.15);color:var(--orange);padding:0.2rem 0.5rem;border-radius:20px;border:1px solid rgba(255,107,43,0.3);margin-top:0.2rem;text-transform:uppercase;letter-spacing:0.05em}
-.mega-footer{border-top:1px solid rgba(255,255,255,0.06);padding:0.875rem 1.75rem;display:flex;justify-content:flex-end}
-.mega-footer a{color:var(--orange);font-size:0.82rem;font-weight:700;transition:opacity 0.2s}
-.mega-footer a:hover{opacity:0.75}
-
-/* ===== HAMBURGER ===== */
-.hamburger{display:none;flex-direction:column;gap:5px;background:none;border:none;cursor:pointer;padding:6px;margin-left:auto}
-.hamburger span{display:block;width:24px;height:2px;background:#fff;border-radius:2px;transition:all 0.3s ease}
-.hamburger.active span:nth-child(1){transform:rotate(45deg) translate(5px,5px)}
-.hamburger.active span:nth-child(2){opacity:0;transform:translateX(-8px)}
-.hamburger.active span:nth-child(3){transform:rotate(-45deg) translate(5px,-5px)}
-
-@media(max-width:900px){
-  .hamburger{display:flex}
-  .nav-menu{position:fixed;top:70px;left:0;right:0;bottom:0;background:var(--navy);flex-direction:column;align-items:stretch;gap:0;padding:1rem 1rem 2rem;overflow-y:auto;transform:translateX(100%);transition:transform 0.3s ease;border-top:1px solid rgba(255,255,255,0.08)}
-  .nav-menu.open{transform:translateX(0)}
-  .nav-item{width:100%}
-  .nav-link{width:100%;justify-content:space-between;padding:0.875rem 1rem;border-radius:8px;font-size:0.95rem}
-  .mega-menu{position:static;transform:none !important;width:100%;box-shadow:none;border:none;border-radius:10px;opacity:1;visibility:visible;pointer-events:all;max-height:0;overflow:hidden;transition:max-height 0.4s ease;background:rgba(255,255,255,0.04);margin-top:0.25rem}
-  .has-mega.open .mega-menu{max-height:900px}
-  .mega-inner{grid-template-columns:1fr;padding:1rem}
-  .mega-col{padding:0 0 1rem 0;border:none !important}
-  .mega-col:last-child{padding-bottom:0}
-  .nav-cta{margin:0.75rem 0 0;text-align:center;padding:0.875rem;border-radius:8px;font-size:0.95rem}
-}
-
-/* ===== ANIMATIONS ===== */
-.fade-up{opacity:0;transform:translateY(28px);transition:opacity 0.6s ease,transform 0.6s ease}
-.fade-up.visible{opacity:1;transform:translateY(0)}
-
-/* ===== HERO ===== */
-.hero{min-height:700px;height:100vh;display:flex;align-items:center;padding:8rem 2rem 5rem;position:relative;overflow:hidden;color:#fff}
-.hero-slider{position:absolute;inset:0;z-index:0}
-.hero-slider .slider-track, .hero-slider .slide, .hero-slider .slide-bg, .hero-slider .slide-video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.hero-slider .slide-overlay{position:absolute;inset:0;background:linear-gradient(135deg,rgba(10,22,40,0.85) 0%,rgba(26,47,78,0.75) 100%)}
-.hero-slider .slide{opacity:0;transition:opacity 0.8s ease;z-index:1}
-.hero-slider .slide.active{opacity:1;z-index:2}
-.hero-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.03) 1px,transparent 1px);background-size:60px 60px;pointer-events:none;opacity:0.5;z-index:2}
-.hero-container{max-width:1200px;margin:0 auto;width:100%;position:relative;z-index:3;display:flex;flex-direction:column;justify-content:center;height:100%}
-.hero-eyebrow{display:inline-flex;align-items:center;gap:0.5rem;font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.15em;color:var(--orange);background:rgba(255,107,43,0.12);border:1px solid rgba(255,107,43,0.25);padding:0.4rem 1rem;border-radius:20px;margin-bottom:1.5rem}
-.hero h1{font-size:clamp(2rem,4.5vw,3.5rem);font-weight:800;color:#fff;line-height:1.15;margin-bottom:1.25rem;max-width:780px}
-.hero h1 span{color:var(--orange)}
-.hero-sub{font-size:1.15rem;color:rgba(255,255,255,0.7);max-width:600px;margin-bottom:2.5rem;line-height:1.7}
-.hero-btns{display:flex;gap:1rem;flex-wrap:wrap}
-.btn-primary{display:inline-flex;align-items:center;padding:0.875rem 2rem;background:var(--orange);color:#fff;font-weight:700;font-size:0.95rem;border-radius:8px;transition:all 0.2s;border:2px solid transparent}
-.btn-primary:hover{background:var(--orange-dark);transform:translateY(-2px);box-shadow:0 8px 25px rgba(255,107,43,0.4)}
-.btn-outline{display:inline-flex;align-items:center;padding:0.875rem 2rem;background:transparent;color:#fff;font-weight:700;font-size:0.95rem;border-radius:8px;transition:all 0.2s;border:2px solid rgba(255,255,255,0.4)}
-.btn-outline:hover{border-color:#fff;background:rgba(255,255,255,0.1)}
-.slider-controls-bottom{position:absolute;bottom:4rem;left:50%;transform:translateX(-50%);z-index:4;display:flex;flex-direction:column;align-items:center;gap:1.5rem}
-.slider-dots{display:flex;gap:0.75rem}
-.dot{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,0.3);border:none;cursor:pointer;transition:all 0.3s}
-.dot.active{background:#fff;transform:scale(1.2)}
-.slider-arrows{display:flex;gap:1.5rem}
-.slider-arrow{width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s}
-.slider-arrow:hover{background:rgba(255,255,255,0.2)}
-@media(max-width:600px){.hero h1{font-size:1.9rem}}
-
-/* ===== TRUST BAR ===== */
-.trust-bar{background:var(--gray-light);padding:2.5rem 2rem;border-bottom:1px solid #e5e5e5}
-.trust-container{max-width:1200px;margin:0 auto}
-.trust-label{text-align:center;font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:#888;margin-bottom:1.5rem}
-.trust-brands{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:1.5rem 2.5rem}
-.trust-brands{overflow:hidden;position:relative}
-.brand-track{display:flex;align-items:center;gap:3.5rem;animation:scroll-brands 22s linear infinite;width:max-content}
-.brand-track:hover{animation-play-state:paused}
-@keyframes scroll-brands{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
-.brand-badge{display:flex;align-items:center;justify-content:center;height:55px;width:140px;flex-shrink:0}
-.brand-badge img{max-height:100%;max-width:100%;width:auto;height:auto;object-fit:contain;filter:grayscale(100%) opacity(0.45);transition:filter 0.3s}
-.brand-badge img:hover{filter:grayscale(0%) opacity(1)}
-.brand-wordmark{font-size:0.85rem;font-weight:800;color:#aaa;letter-spacing:0.08em;white-space:nowrap;transition:color 0.3s;flex-shrink:0}
-.brand-wordmark:hover{color:#333}
-
-/* ===== SECTION COMMONS ===== */
-.section{padding:5rem 2rem}
-.section-container{max-width:1200px;margin:0 auto}
-.section-eyebrow{font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.14em;color:var(--orange);margin-bottom:0.75rem}
-.section h2{font-size:clamp(1.75rem,3.5vw,2.75rem);font-weight:800;line-height:1.2;margin-bottom:1rem}
-.section-sub{font-size:1.05rem;color:rgba(255,255,255,0.7);max-width:640px;margin-bottom:3rem;line-height:1.65}
-.section-sub-dark{font-size:1.05rem;color:#555;max-width:640px;margin-bottom:3rem;line-height:1.65}
-
-/* ===== PROBLEM SECTION ===== */
-.problem-section{background:#fff;padding:5rem 2rem}
-.problem-section h2{color:var(--navy)}
-.problem-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;margin-top:2.5rem}
-.problem-card{background:var(--gray-light);border-radius:12px;padding:2rem;border:1px solid #e8e8e8;transition:all 0.3s}
-.problem-card:hover{border-color:var(--orange);box-shadow:0 8px 30px rgba(255,107,43,0.12);transform:translateY(-3px)}
-.problem-card h3{display:flex;align-items:center;gap:0.75rem;font-size:1.05rem;font-weight:800;color:var(--navy);margin-bottom:0.8rem}
-.problem-card h3 i{color:var(--orange);font-size:1.5rem;width:28px;text-align:center}
-.problem-card p{font-size:0.875rem;color:#555;line-height:1.6}
-.problem-card .accent{color:var(--orange);font-weight:700}
-@media(max-width:768px){.problem-cards{grid-template-columns:1fr}}
-
-/* ===== PORTFOLIO SECTION ===== */
-.portfolio-section{background:var(--navy);padding:5.5rem 2rem}
-.portfolio-section h2{color:#fff}
-.portfolio-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;margin-top:3rem}
-.portfolio-card{background:var(--mid-navy);border:1px solid rgba(255,255,255,0.08);border-radius:14px;overflow:hidden;transition:all 0.3s;display:flex;flex-direction:column}
-.portfolio-card:hover{border-color:rgba(255,107,43,0.4);transform:translateY(-4px);box-shadow:0 16px 50px rgba(0,0,0,0.4)}
-.portfolio-card-img{width:100%;height:180px;object-fit:cover;display:block;background:rgba(255,255,255,0.04)}
-.portfolio-card-body{padding:1.5rem;display:flex;flex-direction:column;flex:1}
-.portfolio-card h3{font-size:1.1rem;font-weight:800;color:#fff;margin-bottom:0.4rem}
-.portfolio-card p{font-size:0.82rem;color:rgba(255,255,255,0.6);line-height:1.55;flex:1;margin-bottom:1.25rem}
-.btn-card{display:inline-flex;align-items:center;gap:0.3rem;padding:0.55rem 1.1rem;background:rgba(255,107,43,0.12);color:var(--orange);border:1px solid rgba(255,107,43,0.3);border-radius:6px;font-size:0.8rem;font-weight:700;transition:all 0.2s;align-self:flex-start}
-.btn-card:hover{background:var(--orange);color:#fff;border-color:var(--orange)}
-@media(max-width:900px){.portfolio-grid{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:600px){.portfolio-grid{grid-template-columns:1fr}}
-
-/* ===== FOUNDER SECTION ===== */
-.founder-section{background:var(--gray-light);padding:5.5rem 2rem}
-.founder-section h2{color:var(--navy);margin-bottom:1.5rem}
-.founder-text{font-size:1.05rem;color:#444;line-height:1.8;max-width:800px;margin-bottom:3rem}
-.timeline{display:flex;gap:0;margin-bottom:3rem;flex-wrap:wrap}
-.timeline-item{flex:1;min-width:120px;text-align:center;position:relative}
-.timeline-item::before{content:'';position:absolute;top:18px;left:50%;right:-50%;height:2px;background:linear-gradient(90deg,var(--orange),rgba(255,107,43,0.3));z-index:0}
-.timeline-item:last-child::before{display:none}
-.timeline-dot{width:38px;height:38px;border-radius:50%;background:var(--orange);color:#fff;font-size:0.7rem;font-weight:800;display:flex;align-items:center;justify-content:center;margin:0 auto 0.5rem;position:relative;z-index:1}
-.timeline-label{font-size:0.75rem;font-weight:700;color:var(--navy)}
-.btn-linkedin{display:inline-flex;align-items:center;gap:0.5rem;padding:0.75rem 1.5rem;background:var(--navy);color:#fff;border-radius:8px;font-weight:700;font-size:0.9rem;transition:all 0.2s}
-.btn-linkedin:hover{background:var(--mid-navy);transform:translateY(-1px)}
-
-/* ===== CONTACT SECTION ===== */
-.contact-section{background:var(--navy);padding:5.5rem 2rem;position:relative;overflow:hidden}
-.contact-section::before{content:'';position:absolute;top:-50%;right:-10%;width:600px;height:600px;background:radial-gradient(circle,rgba(255,107,43,0.08) 0%,transparent 60%);pointer-events:none}
-.contact-section h2{color:#fff;margin-bottom:0.5rem}
-.contact-sub{color:rgba(255,255,255,0.6);margin-bottom:3rem;font-size:1rem}
-.contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:3rem;max-width:1000px}
-.contact-col h3{font-size:1rem;font-weight:700;color:var(--orange);margin-bottom:1rem;text-transform:uppercase;letter-spacing:0.08em;font-size:0.8rem}
-.contact-col h4{font-size:1.15rem;font-weight:800;color:#fff;margin-bottom:0.6rem}
-.contact-col p{font-size:0.875rem;color:rgba(255,255,255,0.6);line-height:1.65;margin-bottom:1.25rem}
-.contact-form{display:flex;flex-direction:column;gap:0.875rem}
-.form-row{display:grid;grid-template-columns:1fr 1fr;gap:0.875rem}
-.form-field{display:flex;flex-direction:column;gap:0.3rem}
-.form-field label{font-size:0.75rem;font-weight:600;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:0.08em}
-.form-field input,.form-field select,.form-field textarea{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:8px;padding:0.7rem 1rem;color:#fff;font-family:'Inter',sans-serif;font-size:0.875rem;transition:border-color 0.2s;outline:none}
-.form-field input:focus,.form-field select:focus,.form-field textarea:focus{border-color:var(--orange)}
-.form-field select option{background:var(--navy);color:#fff}
-.form-field textarea{resize:vertical;min-height:90px}
-.btn-submit{padding:0.875rem 2rem;background:var(--orange);color:#fff;font-weight:700;font-size:0.95rem;border:none;border-radius:8px;cursor:pointer;transition:all 0.2s;font-family:'Inter',sans-serif}
-.btn-submit:hover{background:var(--orange-dark);transform:translateY(-1px)}
-@media(max-width:768px){.contact-grid{grid-template-columns:1fr}.form-row{grid-template-columns:1fr}}
-
-/* ===== FOOTER ===== */
-.footer{background:#060f1c;color:rgba(255,255,255,0.65);padding:4rem 2rem 2rem}
-.footer-container{max-width:1200px;margin:0 auto}
-.footer-top{display:grid;grid-template-columns:280px 1fr;gap:4rem;margin-bottom:3rem}
-.footer-logo{display:flex;flex-direction:column;line-height:1.1;margin-bottom:0.75rem}
-.footer-tagline{font-size:0.875rem;color:rgba(255,255,255,0.45);margin-top:0.5rem;font-style:italic}
-.footer-cols{display:grid;grid-template-columns:repeat(3,1fr);gap:2rem}
-.footer-col h4{font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:var(--orange);margin-bottom:1rem}
-.footer-col ul{list-style:none}
-.footer-col ul li{margin-bottom:0.5rem}
-.footer-col ul li a,.footer-col a{font-size:0.85rem;color:rgba(255,255,255,0.55);transition:color 0.2s}
-.footer-col ul li a:hover,.footer-col a:hover{color:var(--orange)}
-.footer-col p{font-size:0.82rem;line-height:1.7;color:rgba(255,255,255,0.45)}
-.footer-bottom{border-top:1px solid rgba(255,255,255,0.07);padding-top:1.5rem;text-align:center;font-size:0.78rem;color:rgba(255,255,255,0.3)}
-@media(max-width:768px){.footer-top{grid-template-columns:1fr}.footer-cols{grid-template-columns:1fr 1fr}}
-@media(max-width:480px){.footer-cols{grid-template-columns:1fr}}
-</style>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous">
-</head>
-<body>
-
-<!-- ===== NAVBAR ===== -->
-<nav class="navbar" id="navbar">
-  <div class="nav-container">
-    <a href="index.html" class="nav-logo">
-      <span class="logo-main">SMARTDEALER</span>
-      <span class="logo-sub">Technologies Inc.</span>
-    </a>
-    <button class="hamburger" id="hamburger" aria-label="Toggle menu">
-      <span></span><span></span><span></span>
-    </button>
-    <div class="nav-menu" id="navMenu">
-      <div class="nav-item has-mega" id="megaItem">
-        <button class="nav-link mega-trigger" id="megaTrigger" aria-expanded="false">
-          Portfolio <span class="chevron">▾</span>
-        </button>
-        <div class="mega-menu" id="megaMenu">
-          <div class="mega-inner">
-            <div class="mega-col">
-              <div class="mega-col-header">PartSites LLC</div>
-              <a href="partsites.html" class="mega-item">
-                <span class="mega-icon"><i class="fa-solid fa-cart-shopping"></i></span>
-                <div>
-                  <div class="mega-item-name">PartSites (ENVY PRO)</div>
-                  <div class="mega-item-desc">OEM parts &amp; accessories eStore</div>
-                </div>
-              </a>
-              <a href="partsites.html#epic" class="mega-item">
-                <span class="mega-icon"><i class="fa-solid fa-wrench"></i></span>
-                <div>
-                  <div class="mega-item-name">EPIC Widget</div>
-                  <div class="mega-item-desc">True parts catalog widget for dealer sites</div>
-                </div>
-              </a>
-              <a href="partsites.html#wholesale" class="mega-item">
-                <span class="mega-icon"><i class="fa-solid fa-industry"></i></span>
-                <div>
-                  <div class="mega-item-name">ENVY Wholesale</div>
-                  <div class="mega-item-desc">B2B wholesale parts platform</div>
-                </div>
-              </a>
-              <a href="marketplace.html" class="mega-item">
-                <span class="mega-icon"><i class="fa-solid fa-store"></i></span>
-                <div>
-                  <div class="mega-item-name">MARKETPLACE</div>
-                  <div class="mega-item-desc">National OEM parts destination</div>
-                </div>
-              </a>
-            </div>
-            <div class="mega-col">
-              <div class="mega-col-header">InDesign Data LLC</div>
-              <a href="dmsconnect.html" class="mega-item">
-                <span class="mega-icon"><i class="fa-solid fa-plug"></i></span>
-                <div>
-                  <div class="mega-item-name">DMSconnect</div>
-                  <div class="mega-item-desc">Bidirectional DMS data pipeline for ISVs</div>
-                </div>
-              </a>
-              <a href="dmsbackups.html" class="mega-item">
-                <span class="mega-icon"><i class="fa-solid fa-shield-halved"></i></span>
-                <div>
-                  <div class="mega-item-name">DMSbackups</div>
-                  <div class="mega-item-desc">Daily DMS backup &amp; cyberattack protection</div>
-                </div>
-              </a>
-              <a href="docevolution.html" class="mega-item">
-                <span class="mega-icon"><i class="fa-solid fa-file-lines"></i></span>
-                <div>
-                  <div class="mega-item-name">DocEvolution</div>
-                  <div class="mega-item-desc">Cloud document management &amp; digital signatures</div>
-                </div>
-              </a>
-            </div>
-            <div class="mega-col">
-              <div class="mega-col-header">Featured</div>
-              <a href="engage360.html" class="mega-featured">
-                <span class="mega-icon-lg">🎯</span>
-                <div class="mega-item-name" style="color:#fff;font-size:1rem;margin-bottom:0.3rem">ENGAGE360</div>
-                <div class="mega-item-desc" style="color:rgba(255,255,255,0.6);font-size:0.78rem">In-store 4D accessory sales platform. 155% PNVR increase.</div>
-                <span class="mega-badge">JD Power Verified</span>
-              </a>
-            </div>
-          </div>
-          <div class="mega-footer">
-            <a href="index.html#portfolio">View Full Portfolio →</a>
-          </div>
-        </div>
-      </div>
-      <a href="index.html#about" class="nav-link">About</a>
-      <a href="index.html#contact" class="nav-link">Contact</a>
-      <a href="index.html#contact" class="nav-cta">Schedule a Demo</a>
-    </div>
-  </div>
-</nav>
-
-<!-- ===== HERO ===== -->
-<section class="hero">
-  <div class="slider-wrap hero-slider">
-    <div class="slider-track" id="sliderTrack">
-
-      <div class="slide active">
-        <video class="slide-video" autoplay muted loop playsinline><source src="slider-showroom.mp4" type="video/mp4"></video>
-        <div class="slide-overlay"></div>
-      </div>
-
-      <div class="slide">
-        <div class="slide-bg" style="background-image:url('https://smartdealer.com/wp-content/uploads/2025/05/Envy-billboard-copy-1.png')"></div>
-        <div class="slide-overlay"></div>
-      </div>
-
-      <div class="slide">
-        <div class="slide-bg" style="background-image:url('https://smartdealer.com/wp-content/uploads/2025/11/new-smartdealer-tko.png')"></div>
-        <div class="slide-overlay"></div>
-      </div>
-
-      <div class="slide">
-        <div class="slide-bg" style="background-image:url('https://smartdealer.com/wp-content/uploads/2025/05/dealerbox-bilboard-1.png')"></div>
-        <div class="slide-overlay"></div>
-      </div>
-
-      <div class="slide">
-        <div class="slide-bg" style="background-image:url('https://smartdealer.com/wp-content/uploads/2025/05/DMSconnect-bilboard.png')"></div>
-        <div class="slide-overlay"></div>
-      </div>
-    </div>
-  </div>
-
-  <div class="hero-grid"></div>
-  <div class="hero-container">
-    <div class="fade-up">
-      <div class="hero-eyebrow">Accelerate Your Dealership</div>
-      <h1>The Automotive Software Group Behind the Industry's Most <span>Proven Platforms</span></h1>
-      <p class="hero-sub">30 years. 15,000+ installations. $500M+ in dealer sales. Built by the founders of Parts.com.</p>
-      <div class="hero-btns">
-        <a href="#contact" class="btn-primary">Schedule a Demo</a>
-        <a href="#portfolio" class="btn-outline">Explore Portfolio</a>
-      </div>
-    </div>
     
-    <div class="slider-controls-bottom">
-        <div class="slider-dots" id="sliderDots">
-            <button class="dot active" onclick="goToSlide(0)"></button>
-            <button class="dot" onclick="goToSlide(1)"></button>
-            <button class="dot" onclick="goToSlide(2)"></button>
-            <button class="dot" onclick="goToSlide(3)"></button>
-            <button class="dot" onclick="goToSlide(4)"></button>
+    <!-- Sidebar Navigation -->
+    <div class="w-64 bg-[#05080f] border-r border-gray-800 flex flex-col">
+        <div class="p-6 border-b border-gray-800">
+            <h1 class="text-2xl font-extrabold text-white tracking-tight">Mission Control<span class="text-red-500">.</span></h1>
+            <p class="text-xs text-gray-500 mt-1">Agent: PenPen</p>
         </div>
-        <div class="slider-arrows">
-            <button class="slider-arrow slider-prev" onclick="prevSlide()"><i class="fa-solid fa-chevron-left"></i></button>
-            <button class="slider-arrow slider-next" onclick="nextSlide()"><i class="fa-solid fa-chevron-right"></i></button>
-        </div>
-    </div>
-  </div>
-</section>
-
-<!-- ===== TRUST BAR ===== -->
-<section class="trust-bar">
-  <div class="trust-container">
-    <p class="trust-label">Portfolio companies with proven partnerships across the world's leading automotive brands</p>
-    <div class="trust-brands fade-up">
-      <div class="brand-badge"><img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/ford.svg" alt="Ford"></div>
-      <div class="brand-badge"><img src="https://cdn.jsdelivr.net/gh/simple-icons/simple-icons/icons/volkswagen.svg" alt="Volkswagen"></div>
-      <div class="brand-badge"><img src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Mopar_logo.svg" alt="Mopar"></div>
-      <div class="brand-badge"><img src="https://cdn.cdnlogo.com/logos/j/3/j-d-power.svg" alt="JD Power"></div>
-      <div class="brand-badge"><img src="https://www.coxautoinc.com/wp-content/themes/coxautoinc/dist/images/logo-brand-stacked.svg" alt="Cox Automotive"></div>
-    </div>
-  </div>
-</section>
-
-<!-- ===== PROBLEM SECTION ===== -->
-<section class="problem-section section">
-  <div class="section-container">
-    <div class="fade-up">
-      <p class="section-eyebrow">Why SmartDealer</p>
-      <h2>Three Big Problems. Three Specialized Solutions.</h2>
-    </div>
-    <div class="problem-cards">
-      <div class="problem-card fade-up">
-        <h3><i class="fa-solid fa-filter-circle-dollar"></i> Accessory Revenue Leaking</h3>
-        <p>70–80% of buyers never buy accessories from the dealer. <span class="accent">ENGAGE360 captures it back</span> with a 155% verified PNVR increase.</p>
-      </div>
-      <div class="problem-card fade-up">
-        <h3><i class="fa-solid fa-lock"></i> DMS Data Locked Away</h3>
-        <p><span class="accent">B.A.R.T.</span> unlocks bidirectional, real-time DMS data across every department — Sales, Service, Parts, F&I, and Accounting.</p>
-      </div>
-      <div class="problem-card fade-up">
-        <h3><i class="fa-solid fa-store-slash"></i> Parts eCommerce Underperforming</h3>
-        <p>PartSites' <span class="accent">PAGETECH engine</span> generates 75,000 SEO pages per brand — the highest-ranked parts eStore on the net.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ===== PORTFOLIO SECTION ===== -->
-<section class="portfolio-section" id="portfolio">
-  <div class="section-container">
-    <div class="fade-up">
-      <p class="section-eyebrow">Our Products</p>
-      <h2 style="color:#fff">Specialized Platforms. Proven Results.</h2>
-      <p class="section-sub">SmartDealer owns and operates a portfolio of industry-leading automotive software companies — each purpose-built for a different layer of the dealership.</p>
-    </div>
-    <div class="portfolio-grid">
-      <div class="portfolio-card fade-up">
-        <img src="https://smartdealer.com/wp-content/uploads/2025/05/engage360-billboard.png" alt="ENGAGE360" class="portfolio-card-img" loading="lazy">
-        <div class="portfolio-card-body">
-          <h3>ENGAGE360</h3>
-          <p>In-store 4D accessory sales platform. 155% PNVR increase. JD Power verified.</p>
-          <a href="engage360.html" class="btn-card">Learn More →</a>
-        </div>
-      </div>
-      <div class="portfolio-card fade-up">
-        <img src="https://smartdealer.com/wp-content/uploads/2025/05/Envy-billboard-copy-1.png" alt="PartSites ENVY PRO" class="portfolio-card-img" loading="lazy">
-        <div class="portfolio-card-body">
-          <h3>PartSites (ENVY PRO)</h3>
-          <p>The #1 OEM parts &amp; accessories eStore. 75,000 SEO pages per brand. $500M+ in sales.</p>
-          <a href="partsites.html" class="btn-card">Learn More →</a>
-        </div>
-      </div>
-      <div class="portfolio-card fade-up">
-        <img src="https://smartdealer.com/wp-content/uploads/2025/11/new-smartdealer-tko.png" alt="DMSbackups" class="portfolio-card-img" loading="lazy">
-        <div class="portfolio-card-body">
-          <h3>DMSbackups</h3>
-          <p>Daily DMS backup powered by B.A.R.T. Protects against cyberattacks. From $400/mo.</p>
-          <a href="dmsbackups.html" class="btn-card">Learn More →</a>
-        </div>
-      </div>
-      <div class="portfolio-card fade-up">
-        <img src="https://smartdealer.com/wp-content/uploads/2025/05/dealerbox-bilboard-1.png" alt="DocEvolution" class="portfolio-card-img" loading="lazy">
-        <div class="portfolio-card-body">
-          <h3>DocEvolution</h3>
-          <p>Cloud document management — scan, capture, sign, automate. White-label capable.</p>
-          <a href="docevolution.html" class="btn-card">Learn More →</a>
-        </div>
-      </div>
-      <div class="portfolio-card fade-up">
-        <img src="https://smartdealer.com/wp-content/uploads/2025/05/DMSconnect-bilboard.png" alt="DMSconnect" class="portfolio-card-img" loading="lazy">
-        <div class="portfolio-card-body">
-          <h3>DMSconnect</h3>
-          <p>Bidirectional DMS data pipeline for ISVs. CDK, Reynolds, Tekion, and more.</p>
-          <a href="dmsconnect.html" class="btn-card">Learn More →</a>
-        </div>
-      </div>
-      <div class="portfolio-card fade-up">
-        <img src="https://smartdealer.com/wp-content/uploads/2025/05/Envy-billboard-copy-1.png" alt="MARKETPLACE" class="portfolio-card-img" loading="lazy">
-        <div class="portfolio-card-body">
-          <h3>MARKETPLACE</h3>
-          <p>National OEM parts destination. Free to OEMs with 100+ dealer signups.</p>
-          <a href="marketplace.html" class="btn-card">Learn More →</a>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ===== FOUNDER SECTION ===== -->
-<section class="founder-section section" id="about">
-  <div class="section-container">
-    <div class="fade-up">
-      <p class="section-eyebrow">Our Story</p>
-      <h2>Built by the People Who Invented Automotive eCommerce</h2>
-      <p class="founder-text">In 1994, Scott Anderson built one of the world's first automotive parts eCommerce platforms. In 1998, Parts.com reached a $1B market cap on NASDAQ and became AutoNation's exclusive online fulfillment partner. He then built TradeMotion — the first SaaS platform for OEM parts &amp; accessories — powering Volkswagen, Subaru, Kia, Nissan, and Chrysler's first Mopar DTC store. Today, SmartDealer Technologies is the holding company for InDesign Data LLC and PartSites LLC — representing 30 years of automotive e-commerce expertise.</p>
-    </div>
-    <div class="timeline fade-up">
-      <div class="timeline-item">
-        <div class="timeline-dot">1994</div>
-        <div class="timeline-label">First Parts eCommerce</div>
-      </div>
-      <div class="timeline-item">
-        <div class="timeline-dot">1998</div>
-        <div class="timeline-label">Parts.com $1B NASDAQ</div>
-      </div>
-      <div class="timeline-item">
-        <div class="timeline-dot">2005</div>
-        <div class="timeline-label">TradeMotion SaaS</div>
-      </div>
-      <div class="timeline-item">
-        <div class="timeline-dot">2010</div>
-        <div class="timeline-label">InDesign Data LLC</div>
-      </div>
-      <div class="timeline-item">
-        <div class="timeline-dot">Today</div>
-        <div class="timeline-label">SmartDealer Portfolio</div>
-      </div>
-    </div>
-    <a href="https://linkedin.com/in/smartdealer" target="_blank" class="btn-linkedin fade-up">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="margin-right:0.4rem"><path d="M19 3a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h14m-.5 15.5v-5.3a3.26 3.26 0 00-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 011.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 001.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 00-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg>
-      Connect on LinkedIn
-    </a>
-  </div>
-</section>
-
-<!-- ===== CONTACT SECTION ===== -->
-<section class="contact-section" id="contact">
-  <div class="section-container">
-    <div class="fade-up">
-      <h2>Ready to grow your dealership's revenue?</h2>
-      <p class="contact-sub">Schedule a demo or reach out to our team. We'll show you exactly what's possible.</p>
-    </div>
-    <div class="contact-grid">
-      <div class="contact-col fade-up">
-        <h3>For Dealers</h3>
-        <h4>Schedule a Demo</h4>
-        <p>See ENGAGE360, PartSites, DMSbackups, or any of our products live. No pitch — just a real demonstration of what we can do for your store.</p>
-        <form class="contact-form" onsubmit="return false">
-          <div class="form-row">
-            <div class="form-field">
-              <label>Name</label>
-              <input type="text" placeholder="John Smith">
-            </div>
-            <div class="form-field">
-              <label>Email</label>
-              <input type="email" placeholder="john@dealer.com">
-            </div>
-          </div>
-          <div class="form-field">
-            <label>Company</label>
-            <input type="text" placeholder="Smith Ford">
-          </div>
-          <div class="form-field">
-            <label>Role</label>
-            <select>
-              <option value="">Select your role</option>
-              <option>Dealer</option>
-              <option>OEM</option>
-              <option>ISV</option>
-              <option>Investor</option>
-              <option>Other</option>
-            </select>
-          </div>
-          <div class="form-field">
-            <label>Message</label>
-            <textarea placeholder="What are you looking to solve?"></textarea>
-          </div>
-          <button type="submit" class="btn-submit">Send Message</button>
-        </form>
-      </div>
-      <div class="contact-col fade-up" style="display:flex;flex-direction:column;justify-content:center">
-        <h3>For OEMs &amp; Enterprise</h3>
-        <h4>Contact Our Team</h4>
-        <p>OEM programs, enterprise licensing, white-label opportunities, and ISV API partnerships. We work directly with manufacturers, dealer groups, and software vendors.</p>
-        <div style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:1.5rem;margin-top:1rem">
-          <p style="font-size:0.85rem;color:rgba(255,255,255,0.5);margin-bottom:0.75rem">📍 Headquarters</p>
-          <p style="font-size:0.95rem;color:#fff;font-weight:600;line-height:1.6">175 SW 7th Street, Suite 2010<br>Miami, FL 33130</p>
-          <a href="https://linkedin.com/in/smartdealer" target="_blank" style="display:inline-flex;align-items:center;gap:0.4rem;margin-top:1rem;color:var(--orange);font-weight:700;font-size:0.875rem">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h14m-.5 15.5v-5.3a3.26 3.26 0 00-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 011.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 001.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 00-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg>
-            linkedin.com/in/smartdealer
-          </a>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ===== FOOTER ===== -->
-<footer class="footer">
-  <div class="footer-container">
-    <div class="footer-top">
-      <div class="footer-brand">
-        <div class="footer-logo">
-          <span class="logo-main" style="font-size:1.1rem">SMARTDEALER</span>
-          <span class="logo-sub" style="font-size:0.58rem">Technologies Inc.</span>
-        </div>
-        <p class="footer-tagline">Smart Products. Smart Business.</p>
-      </div>
-      <div class="footer-cols">
-        <div class="footer-col">
-          <h4>Portfolio</h4>
-          <ul>
-            <li><a href="engage360.html">ENGAGE360</a></li>
-            <li><a href="partsites.html">PartSites</a></li>
-            <li><a href="dmsbackups.html">DMSbackups</a></li>
-            <li><a href="docevolution.html">DocEvolution</a></li>
-            <li><a href="dmsconnect.html">DMSconnect</a></li>
-            <li><a href="marketplace.html">MARKETPLACE</a></li>
-          </ul>
-        </div>
-        <div class="footer-col">
-          <h4>Company</h4>
-          <ul>
-            <li><a href="index.html#about">About</a></li>
-            <li><a href="#">Blog</a></li>
-            <li><a href="index.html#contact">Contact</a></li>
-          </ul>
-        </div>
-        <div class="footer-col">
-          <h4>Contact</h4>
-          <p>175 SW 7th Street<br>Suite 2010<br>Miami, FL 33130</p>
-          <a href="https://linkedin.com/in/smartdealer" target="_blank" style="display:inline-block;margin-top:0.75rem">linkedin.com/in/smartdealer</a>
-        </div>
-      </div>
-    </div>
-    <div class="footer-bottom">
-      <p>© 2026 SmartDealer Technologies Inc. | InDesign Data LLC | PartSites LLC</p>
-    </div>
-  </div>
-</footer>
-
-<script>
-// ===== MEGA MENU =====
-const megaItem = document.getElementById('megaItem');
-const megaTrigger = document.getElementById('megaTrigger');
-const hamburger = document.getElementById('hamburger');
-const navMenu = document.getElementById('navMenu');
-
-if (megaTrigger) {
-  megaTrigger.addEventListener('click', (e) => {
-    if (window.innerWidth <= 900) {
-      e.preventDefault();
-      megaItem.classList.toggle('open');
-      megaTrigger.setAttribute('aria-expanded', megaItem.classList.contains('open'));
-      const chevron = megaTrigger.querySelector('.chevron');
-      if (chevron) chevron.style.transform = megaItem.classList.contains('open') ? 'rotate(180deg)' : '';
-    }
-  });
-}
-
-hamburger.addEventListener('click', () => {
-  hamburger.classList.toggle('active');
-  navMenu.classList.toggle('open');
-});
-
-document.querySelectorAll('.mega-item, .nav-link:not(.mega-trigger), .nav-cta').forEach(link => {
-  link.addEventListener('click', () => {
-    if (window.innerWidth <= 900) {
-      hamburger.classList.remove('active');
-      navMenu.classList.remove('open');
-    }
-  });
-});
-
-// Close mega on outside click (desktop)
-document.addEventListener('click', (e) => {
-  if (!megaItem.contains(e.target)) megaItem.classList.remove('open');
-});
-
-// Navbar scroll
-window.addEventListener('scroll', () => {
-  const nav = document.getElementById('navbar');
-  nav.style.borderBottomColor = window.scrollY > 50 ? 'rgba(255,107,43,0.2)' : 'rgba(255,255,255,0.08)';
-});
-
-// ===== ANIMATIONS =====
-const observer = new IntersectionObserver((entries) => {
-  entries.forEach((entry, i) => {
-    if (entry.isIntersecting) {
-      setTimeout(() => entry.target.classList.add('visible'), i * 80);
-    }
-  });
-}, { threshold: 0.08 });
-document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
-
-// ===== COUNTERS =====
-function animateCounter(el) {
-  const target = parseFloat(el.dataset.target);
-  const suffix = el.dataset.suffix || '';
-  const duration = 1800;
-  const start = performance.now();
-  const isDecimal = !Number.isInteger(target);
-  function update(now) {
-    const progress = Math.min((now - start) / duration, 1);
-    const eased = 1 - Math.pow(1 - progress, 3);
-    const val = eased * target;
-    el.textContent = (isDecimal ? val.toFixed(1) : Math.round(val).toLocaleString()) + suffix;
-    if (progress < 1) requestAnimationFrame(update);
-  }
-  requestAnimationFrame(update);
-}
-const cObserver = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting && !entry.target.dataset.animated) {
-      entry.target.dataset.animated = '1';
-      animateCounter(entry.target);
-    }
-  });
-}, { threshold: 0.5 });
-document.querySelectorAll('[data-target]').forEach(el => cObserver.observe(el));
-</script>
-
-  // ===== SLIDER =====
-    let currentSlide = 0;
-    const slides = document.querySelectorAll('.hero-slider .slide');
-    const dots = document.querySelectorAll('.dot');
-    const totalSlides = slides.length;
-    let sliderInterval;
-
-    function goToSlide(n) {
-        if (n < 0) n = totalSlides - 1;
-        if (n >= totalSlides) n = 0;
-        currentSlide = n;
         
-        slides.forEach((s, i) => s.classList.toggle('active', i === n));
-        dots.forEach((d, i) => d.classList.toggle('active', i === n));
+        <div class="flex-1 overflow-y-auto py-4">
+            <ul class="space-y-1 px-3">
+                <li><a onclick="switchTab('dashboard'); loadDashboard();" id="nav-dashboard" class="nav-btn active-tab flex items-center px-4 py-3 text-sm rounded-lg"><i class="fa-regular fa-house mr-3 w-5 text-center"></i> Dashboard</a></li>
+                <li><a onclick="switchTab('tasks')" id="nav-tasks" class="nav-btn flex items-center px-4 py-3 text-sm text-gray-400 rounded-lg"><i class="fa-regular fa-clipboard-list mr-3 w-5 text-center"></i> Task Board</a></li>
+                <li><a onclick="switchTab('projects')" id="nav-projects" class="nav-btn flex items-center px-4 py-3 text-sm text-gray-400 rounded-lg"><i class="fa-solid fa-bullseye mr-3 w-5 text-center"></i> Projects</a></li>
+                <li><a onclick="switchTab('memory')" id="nav-memory" class="nav-btn flex items-center px-4 py-3 text-sm text-gray-400 rounded-lg"><i class="fa-solid fa-brain mr-3 w-5 text-center"></i> Memory & Journals</a></li>
+                <li><a onclick="switchTab('calendar')" id="nav-calendar" class="nav-btn flex items-center px-4 py-3 text-sm text-gray-400 rounded-lg"><i class="fa-regular fa-calendar mr-3 w-5 text-center"></i> Calendar & Cron</a></li>
+                <li><a onclick="switchTab('docs')" id="nav-docs" class="nav-btn flex items-center px-4 py-3 text-sm text-gray-400 rounded-lg"><i class="fa-regular fa-folder mr-3 w-5 text-center"></i> Docs & Artifacts</a></li>
+
+                <li><a onclick="switchTab('bookmarks')" id="nav-bookmarks" class="nav-btn flex items-center px-4 py-3 text-sm text-gray-400 rounded-lg"><i class="fa-solid fa-link mr-3 w-5 text-center"></i> Bookmarks</a></li>
+                <li><a onclick="switchTab('database')" id="nav-database" class="nav-btn flex items-center px-4 py-3 text-sm text-gray-400 rounded-lg"><i class="fa-solid fa-database mr-3 w-5 text-center"></i> Target Database</a></li>
+                <li><a onclick="switchTab('skills')" id="nav-skills" class="nav-btn flex items-center px-4 py-3 text-sm text-gray-400 rounded-lg"><i class="fa-solid fa-bolt mr-3 w-5 text-center"></i> Skills</a></li>
+                <li><a onclick="switchTab('tokens'); loadTokenStats();" id="nav-tokens" class="nav-btn flex items-center px-4 py-3 text-sm text-gray-400 rounded-lg"><i class="fa-solid fa-hashtag mr-3 w-5 text-center"></i> Token Monitor</a></li>
+                <li><a onclick="switchTab('kb'); loadKB();" id="nav-kb" class="nav-btn flex items-center px-4 py-3 text-sm text-gray-400 rounded-lg"><i class="fa-regular fa-book mr-3 w-5 text-center"></i> Knowledge Base</a></li>
+                <li><a onclick="switchTab('team-agents'); loadTeam();" id="nav-team-agents" class="nav-btn flex items-center px-4 py-3 text-sm text-gray-400 rounded-lg"><i class="fa-solid fa-robot mr-3 w-5 text-center"></i> Team</a></li>
+                <li><a onclick="switchTab('inbox'); loadInbox();" id="nav-inbox" class="nav-btn flex items-center px-4 py-3 text-sm text-gray-400 rounded-lg"><i class="fa-regular fa-inbox mr-3 w-5 text-center"></i> Inbox</a></li>
+                <li><a onclick="switchTab('pipeline'); loadPipeline();" id="nav-pipeline" class="nav-btn flex items-center px-4 py-3 text-sm text-gray-400 rounded-lg"><i class="fa-solid fa-chart-line mr-3 w-5 text-center"></i> Pipeline</a></li>
+                <li><a onclick="switchTab('scout-archive'); loadScoutArchive();" id="nav-scout-archive" class="nav-btn flex items-center px-4 py-3 text-sm text-gray-400 rounded-lg"><i class="fa-regular fa-magnifying-glass mr-3 w-5 text-center"></i> Scout Archive</a></li>
+                <li><a onclick="switchTab('revenue'); loadRevenue();" id="nav-revenue" class="nav-btn flex items-center px-4 py-3 text-sm text-gray-400 rounded-lg"><i class="fa-solid fa-chart-bar mr-3 w-5 text-center"></i> Revenue</a></li>
+            </ul>
+        </div>
         
-        resetInterval();
-    }
+        <div class="p-4 border-t border-gray-800">
+            <div class="bg-gray-900 rounded-lg p-4 border border-gray-800">
+                <p class="text-xs text-gray-500 uppercase tracking-wider font-bold mb-2">Mission Statement</p>
+                <p class="text-sm text-gray-300 italic">"Drive SmartDealer MRR to $1M+ via autonomous outbound and pipeline execution."</p>
+            </div>
+        </div>
+    </div>
 
-    function nextSlide() { goToSlide(currentSlide + 1); }
-    function prevSlide() { goToSlide(currentSlide - 1); }
+    <!-- Main Content Area -->
+    <div class="flex-1 overflow-y-auto p-8 bg-[#0B1120]">
+        
+        <!-- DASHBOARD TAB -->
+        <div id="tab-dashboard" class="tab-content tab-active max-w-7xl mx-auto">
+            <header class="flex justify-between items-center mb-8">
+                <div>
+                    <h2 class="text-2xl font-bold text-white">Dashboard</h2>
+                    <p class="text-sm text-gray-400 mt-1" id="dash-timestamp">—</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span id="dash-sse-indicator" class="flex items-center gap-2 text-xs text-gray-500"><span class="w-2 h-2 rounded-full bg-gray-600 inline-block" id="dash-sse-dot"></span> Connecting...</span>
+                    <button onclick="loadDashboard()" class="bg-gray-800 hover:bg-gray-700 text-gray-300 text-sm font-bold py-2 px-4 rounded transition-colors">↻ Refresh</button>
+                </div>
+            </header>
 
-    function resetInterval() {
-        clearInterval(sliderInterval);
-        sliderInterval = setInterval(nextSlide, 5000);
-    }
+            <!-- KPI Row -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                <div class="bg-gray-900 rounded-xl p-5 border border-gray-800">
+                    <p class="text-xs text-gray-500 uppercase tracking-wider mb-2">Tasks Open</p>
+                    <p class="text-3xl font-extrabold text-white" id="kpi-todo">—</p>
+                    <p class="text-xs text-gray-600 mt-1">waiting to execute</p>
+                </div>
+                <div class="bg-gray-900 rounded-xl p-5 border border-gray-800">
+                    <p class="text-xs text-gray-500 uppercase tracking-wider mb-2">In Progress</p>
+                    <p class="text-3xl font-extrabold text-blue-400" id="kpi-inprogress">—</p>
+                    <p class="text-xs text-gray-600 mt-1">actively running</p>
+                </div>
+                <div class="bg-gray-900 rounded-xl p-5 border border-gray-800">
+                    <p class="text-xs text-gray-500 uppercase tracking-wider mb-2">Completed</p>
+                    <p class="text-3xl font-extrabold text-green-400" id="kpi-done">—</p>
+                    <p class="text-xs text-gray-600 mt-1">tasks done</p>
+                </div>
+                <div class="bg-gray-900 rounded-xl p-5 border border-red-900/30">
+                    <p class="text-xs text-gray-500 uppercase tracking-wider mb-2">Session Cost</p>
+                    <p class="text-3xl font-extrabold text-red-400" id="kpi-cost">—</p>
+                    <p class="text-xs text-gray-600 mt-1">all-time API spend</p>
+                </div>
+            </div>
 
-    // Init
-    if(slides.length > 0) {
-        slides[0].classList.add('active');
-        dots[0].classList.add('active');
-        resetInterval();
-    }
-  </script>
+            <!-- Middle Row: Token Health + Open Tasks -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
 
-  <script>
-    // This script block is a duplicate from a previous merge, removing it.
-  </script>
+                <!-- Token Health -->
+                <div class="bg-gray-900 rounded-xl p-6 border border-gray-800">
+                    <h3 class="text-sm font-bold text-gray-300 uppercase tracking-wider mb-5"><i class="fa-solid fa-hashtag"></i> Token Health</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <div class="flex justify-between text-xs text-gray-400 mb-1">
+                                <span>Context Window Used</span>
+                                <span id="dash-context-pct">—</span>
+                            </div>
+                            <div class="w-full bg-gray-800 rounded-full h-2">
+                                <div id="dash-context-bar" class="bg-blue-500 h-2 rounded-full transition-all duration-500" style="width:0%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs text-gray-400 mb-1">
+                                <span>Cache Hit Rate</span>
+                                <span id="dash-cache-pct">—</span>
+                            </div>
+                            <div class="w-full bg-gray-800 rounded-full h-2">
+                                <div id="dash-cache-bar" class="bg-green-500 h-2 rounded-full transition-all duration-500" style="width:0%"></div>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-3 gap-3 mt-4 text-center">
+                            <div class="bg-black rounded-lg p-3 border border-gray-800">
+                                <p class="text-sm font-bold text-white" id="dash-tokens-in">—</p>
+                                <p class="text-xs text-gray-600">Tokens In</p>
+                            </div>
+                            <div class="bg-black rounded-lg p-3 border border-gray-800">
+                                <p class="text-sm font-bold text-white" id="dash-tokens-out">—</p>
+                                <p class="text-xs text-gray-600">Tokens Out</p>
+                            </div>
+                            <div class="bg-black rounded-lg p-3 border border-gray-800">
+                                <p class="text-sm font-bold text-green-400" id="dash-cached">—</p>
+                                <p class="text-xs text-gray-600">Cached</p>
+                            </div>
+                        </div>
+                        <p class="text-xs text-gray-600 mt-2">Model: <span id="dash-model" class="text-blue-400 font-mono">—</span></p>
+                    </div>
+                </div>
+
+                <!-- Open Tasks -->
+                <div class="bg-gray-900 rounded-xl p-6 border border-gray-800">
+                    <div class="flex justify-between items-center mb-5">
+                        <h3 class="text-sm font-bold text-gray-300 uppercase tracking-wider"><i class="fa-solid fa-clipboard-list"></i> Open Tasks</h3>
+                        <a onclick="switchTab('tasks')" class="text-xs text-red-400 hover:text-red-300 cursor-pointer">View Board →</a>
+                    </div>
+                    <div id="dash-task-list" class="space-y-2">
+                        <p class="text-gray-600 text-sm">Loading...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Row: Agent Status + Quick Links -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                <!-- Cost Pie -->
+                <div class="bg-gray-900 rounded-xl p-6 border border-gray-800">
+                    <h3 class="text-sm font-bold text-gray-300 uppercase tracking-wider mb-5"><i class="fa-solid fa-chart-line"></i> Cost by Model</h3>
+                    <div class="flex items-center justify-center gap-8">
+                        <div style="width:160px;height:160px;position:relative;">
+                            <canvas id="dash-pie-chart"></canvas>
+                            <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none;">
+                                <p class="text-lg font-bold text-white" id="dash-pie-total">—</p>
+                                <p class="text-xs text-gray-500">total</p>
+                            </div>
+                        </div>
+                        <div id="dash-pie-legend" class="space-y-2 text-xs"></div>
+                    </div>
+                </div>
+
+                <!-- Agent Status -->
+                <div class="bg-gray-900 rounded-xl p-6 border border-gray-800">
+                    <h3 class="text-sm font-bold text-gray-300 uppercase tracking-wider mb-5">🐧 Agent Status</h3>
+                    <div class="flex items-center gap-4 mb-4">
+                        <div class="w-12 h-12 rounded-full bg-red-600 flex items-center justify-center text-2xl">🐧</div>
+                        <div>
+                            <p class="text-base font-bold text-white">PenPen</p>
+                            <p class="text-xs text-gray-500">anthropic/claude-sonnet-4-6</p>
+                            <p class="flex items-center gap-1 text-xs text-green-400 mt-1"><span class="w-1.5 h-1.5 rounded-full bg-green-400 inline-block"></span> Online · Mac Mini</p>
+                        </div>
+                    </div>
+                    <div class="space-y-2 text-xs text-gray-400 border-t border-gray-800 pt-4">
+                        <div class="flex justify-between"><span>Heartbeat</span><span class="text-gray-300">Every 30–60 min</span></div>
+                        <div class="flex justify-between"><span>Journal Compiler</span><span class="text-gray-300">Daily @ 11:55 PM</span></div>
+                        <div class="flex justify-between"><span>Email Check</span><span class="text-gray-300">On heartbeat</span></div>
+                        <div class="flex justify-between"><span>Mission Control</span><span class="text-green-400">Live · Real-time SSE</span></div>
+                    </div>
+                </div>
+
+                <!-- Sub-Agent Status -->
+                <div class="bg-gray-900 rounded-xl p-6 border border-gray-800">
+                    <div class="flex justify-between items-center mb-5">
+                        <h3 class="text-sm font-bold text-gray-300 uppercase tracking-wider"><i class="fa-solid fa-robot"></i> Team Status</h3>
+                        <a onclick="switchTab('team-agents'); loadTeam();" class="text-xs text-red-400 hover:text-red-300 cursor-pointer">Manage →</a>
+                    </div>
+                    <div class="space-y-2" id="dash-agents">
+                        <!-- PenPen -->
+                        <div class="flex items-center justify-between p-2 bg-black rounded-lg border border-gray-800">
+                            <div class="flex items-center gap-2">
+                                <span class="text-base">🐧</span>
+                                <div>
+                                    <p class="text-xs font-bold text-white">PenPen</p>
+                                    <p class="text-xs text-gray-600 font-mono">sonnet-4-6</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <span class="flex items-center gap-1 text-xs text-green-400"><span class="w-1.5 h-1.5 rounded-full bg-green-400 inline-block animate-pulse"></span> Online</span>
+                                <p class="text-xs text-gray-600">Strategy · Chat</p>
+                            </div>
+                        </div>
+                        <!-- Scout -->
+                        <div class="flex items-center justify-between p-2 bg-black rounded-lg border border-gray-800">
+                            <div class="flex items-center gap-2">
+                                <span class="text-base">🔭</span>
+                                <div>
+                                    <p class="text-xs font-bold text-white">Scout</p>
+                                    <p class="text-xs text-gray-600 font-mono">llama3.2:3b · local</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <span class="flex items-center gap-1 text-xs text-green-400" id="dash-scout-status"><span class="w-1.5 h-1.5 rounded-full bg-green-400 inline-block"></span> Online</span>
+                                <p class="text-xs text-gray-600">Research · 8AM daily</p>
+                            </div>
+                        </div>
+                        <!-- Sentry -->
+                        <div class="flex items-center justify-between p-2 bg-black rounded-lg border border-gray-800">
+                            <div class="flex items-center gap-2">
+                                <span class="text-base"><i class="fa-solid fa-shield-halved"></i></span>
+                                <div>
+                                    <p class="text-xs font-bold text-white">Sentry</p>
+                                    <p class="text-xs text-gray-600 font-mono">haiku-4</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <span class="flex items-center gap-1 text-xs text-green-400"><span class="w-1.5 h-1.5 rounded-full bg-green-400 inline-block"></span> Online</span>
+                                <p class="text-xs text-gray-600">Heartbeats · Email triage</p>
+                            </div>
+                        </div>
+                        <!-- Scribe -->
+                        <div class="flex items-center justify-between p-2 bg-black rounded-lg border border-gray-800">
+                            <div class="flex items-center gap-2">
+                                <span class="text-base">✍️</span>
+                                <div>
+                                    <p class="text-xs font-bold text-white">Scribe</p>
+                                    <p class="text-xs text-gray-600 font-mono">llama3.2:3b · local</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <span class="flex items-center gap-1 text-xs text-green-400" id="dash-scribe-status"><span class="w-1.5 h-1.5 rounded-full bg-green-400 inline-block"></span> Online</span>
+                                <p class="text-xs text-gray-600">Drafts · Summaries</p>
+                            </div>
+                        </div>
+                        <!-- Closer -->
+                        <div class="flex items-center justify-between p-2 bg-black rounded-lg border border-gray-800">
+                            <div class="flex items-center gap-2">
+                                <span class="text-base"><i class="fa-solid fa-bullseye"></i></span>
+                                <div>
+                                    <p class="text-xs font-bold text-white">Closer</p>
+                                    <p class="text-xs text-gray-600 font-mono">haiku-4</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <span class="flex items-center gap-1 text-xs text-green-400"><span class="w-1.5 h-1.5 rounded-full bg-green-400 inline-block"></span> Online</span>
+                                <p class="text-xs text-gray-600">Leads · HubSpot</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Links -->
+                <div class="bg-gray-900 rounded-xl p-6 border border-gray-800">
+                    <h3 class="text-sm font-bold text-gray-300 uppercase tracking-wider mb-5"><i class="fa-solid fa-link"></i> Quick Links</h3>
+                    <div class="space-y-2">
+                        <a href="https://modmotive69.github.io/smartdealer-minisite/" target="_blank" class="flex items-center justify-between p-3 bg-black rounded-lg border border-gray-800 hover:border-blue-500/50 transition-colors group">
+                            <div class="flex items-center gap-3"><span><i class="fa-solid fa-building"></i></span><span class="text-sm text-gray-300 group-hover:text-white">SmartDealer Minisite</span></div>
+                            <span class="text-xs text-gray-600">↗</span>
+                        </a>
+                        <a href="https://modmotive69.github.io/smartdealer-minisite/partsites-mockup.html" target="_blank" class="flex items-center justify-between p-3 bg-black rounded-lg border border-gray-800 hover:border-red-500/50 transition-colors group">
+                            <div class="flex items-center gap-3"><span>🛒</span><span class="text-sm text-gray-300 group-hover:text-white">PartSites 2.0 Landing</span></div>
+                            <span class="text-xs text-gray-600">↗</span>
+                        </a>
+                        <a href="https://app.hubspot.com/deals/" target="_blank" class="flex items-center justify-between p-3 bg-black rounded-lg border border-gray-800 hover:border-orange-500/50 transition-colors group">
+                            <div class="flex items-center gap-3"><span><i class="fa-solid fa-chart-bar"></i></span><span class="text-sm text-gray-300 group-hover:text-white">HubSpot Pipeline</span></div>
+                            <span class="text-xs text-gray-600">↗</span>
+                        </a>
+                        <a href="https://portal.azure.com" target="_blank" class="flex items-center justify-between p-3 bg-black rounded-lg border border-gray-800 hover:border-purple-500/50 transition-colors group">
+                            <div class="flex items-center gap-3"><span>☁️</span><span class="text-sm text-gray-300 group-hover:text-white">Azure Portal</span></div>
+                            <span class="text-xs text-gray-600">↗</span>
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- TASK BOARD TAB -->
+        <div id="tab-tasks" class="tab-content max-w-7xl mx-auto">
+            <header class="flex justify-between items-center mb-8">
+                <div>
+                    <h2 class="text-2xl font-bold text-white">Task Board</h2>
+                    <p class="text-sm text-gray-400 mt-1">Live execution pipeline.</p>
+                </div>
+                <button onclick="addTask()" class="bg-red-600 hover:bg-red-700 text-white text-sm font-bold py-2 px-6 rounded shadow-lg shadow-red-600/20 transition-all">+ New Task</button>
+            </header>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- TO DO -->
+                <div class="bg-gray-900/50 rounded-xl p-4 border border-gray-800 kanban-col">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-sm font-bold text-gray-300 uppercase tracking-wider">To Do</h2>
+                        <span class="bg-gray-800 text-gray-400 text-xs py-1 px-2 rounded-full" id="todo-count">0</span>
+                    </div>
+                    <div id="todo-list" class="space-y-3"></div>
+                </div>
+
+                <!-- IN PROGRESS -->
+                <div class="bg-gray-900/50 rounded-xl p-4 border border-blue-900/30 kanban-col">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-sm font-bold text-blue-400 uppercase tracking-wider">In Progress</h2>
+                        <span class="bg-blue-900/50 text-blue-400 text-xs py-1 px-2 rounded-full" id="ip-count">0</span>
+                    </div>
+                    <div id="inprogress-list" class="space-y-3"></div>
+                </div>
+
+                <!-- DONE -->
+                <div class="bg-gray-900/50 rounded-xl p-4 border border-green-900/30 kanban-col">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-sm font-bold text-green-400 uppercase tracking-wider">Review / Done</h2>
+                        <span class="bg-green-900/50 text-green-400 text-xs py-1 px-2 rounded-full" id="done-count">0</span>
+                    </div>
+                    <div id="done-list" class="space-y-3"></div>
+                </div>
+            </div>
+            
+            <div class="mt-8 bg-gray-900/50 rounded-xl p-6 border border-gray-800">
+                <h2 class="text-sm font-bold text-gray-300 uppercase tracking-wider mb-4">Live Activity Feed</h2>
+                <div id="activity-feed" class="h-40 overflow-y-auto font-mono text-xs text-gray-400 space-y-2 p-4 bg-black rounded border border-gray-800">
+                    <div><span class="text-gray-600">[SYSTEM]</span> Task Board loaded.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PROJECTS TAB -->
+        <div id="tab-projects" class="tab-content max-w-5xl mx-auto">
+            <header class="mb-8">
+                <h2 class="text-2xl font-bold text-white">Active Projects</h2>
+                <p class="text-sm text-gray-400 mt-1">High-level goals to prevent distraction.</p>
+            </header>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-gray-900 rounded-xl p-6 border border-gray-800 hover:border-red-500/50 transition-colors cursor-pointer">
+                    <div class="flex justify-between items-start mb-4">
+                        <h3 class="text-lg font-bold text-white">PartSites Conquest</h3>
+                        <span class="bg-blue-900/50 text-blue-400 text-xs px-2 py-1 rounded">Active</span>
+                    </div>
+                    <p class="text-sm text-gray-400 mb-4">Deploy Dark Matter scraper to identify RevolutionParts dealers and push to HubSpot.</p>
+                    <div class="w-full bg-gray-800 rounded-full h-2">
+                        <div class="bg-red-600 h-2 rounded-full" style="width: 20%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MEMORY TAB -->
+        <div id="tab-memory" class="tab-content max-w-5xl mx-auto">
+            <header class="mb-8">
+                <h2 class="text-2xl font-bold text-white">Memory & Daily Journals</h2>
+                <p class="text-sm text-gray-400 mt-1">Automated daily reflections to improve context and save tokens.</p>
+            </header>
+            <div class="bg-gray-900 rounded-xl p-6 border border-gray-800">
+                <div class="space-y-4">
+                    <div class="p-4 bg-black rounded border border-gray-800">
+                        <div class="flex justify-between items-center mb-2">
+                            <h3 class="text-sm font-bold text-white">Daily Journal - 2026-03-19</h3>
+                            <span class="bg-green-900/50 text-green-400 text-xs px-2 py-1 rounded">Compiled</span>
+                        </div>
+                        <p class="text-xs text-gray-400 leading-relaxed">
+                            - Rebuilt PartSites.com strategy ("Commodity Killer" approach: $99/mo, 0% transaction fees).<br/>
+                            - Deployed Mission Control dashboard with local web server and Cloudflare tunnel.<br/>
+                            - Connected HubSpot CRM and enabled automated Deal/Company creation.<br/>
+                            - Built 'dark-matter-scraper' AgentSkill to identify RevolutionParts dealers.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CALENDAR TAB -->
+        <div id="tab-calendar" class="tab-content max-w-5xl mx-auto">
+            <header class="mb-8">
+                <h2 class="text-2xl font-bold text-white">Calendar & Cron Jobs</h2>
+                <p class="text-sm text-gray-400 mt-1">Verify proactive scheduling and background automation.</p>
+            </header>
+            <div class="bg-gray-900 rounded-xl p-6 border border-gray-800">
+                <h3 class="text-sm font-bold text-gray-300 uppercase tracking-wider mb-4">Scheduled OpenClaw Cron Jobs</h3>
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center p-3 bg-black rounded border border-gray-800">
+                        <div>
+                            <p class="text-sm font-bold text-white">Inbox Triage (Heartbeat)</p>
+                            <p class="text-xs text-gray-500">Runs check_email.sh and filters spam.</p>
+                        </div>
+                        <span class="text-xs font-mono text-blue-400">Every 15m</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- DOCS TAB -->
+        <div id="tab-docs" class="tab-content max-w-5xl mx-auto">
+            <header class="mb-8">
+                <h2 class="text-2xl font-bold text-white">Docs & Artifacts</h2>
+                <p class="text-sm text-gray-400 mt-1">Generated copy, plans, and code snippets.</p>
+            </header>
+            <div class="bg-gray-900 rounded-xl p-6 border border-gray-800">
+                <input type="text" placeholder="Search docs (e.g., 'PartSites mockups')..." class="w-full bg-black border border-gray-700 rounded-lg px-4 py-2 text-sm text-white focus:outline-none focus:border-red-500 mb-6">
+                <div class="space-y-2">
+                    <a href="/Users/scottanderson/.openclaw/workspace/research/minisite/partsites-mockup.html" class="block p-3 bg-black rounded border border-gray-800 hover:border-gray-600">
+                        <div class="flex items-center">
+                            <span class="text-xl mr-3"><i class="fa-solid fa-globe"></i></span>
+                            <div>
+                                <p class="text-sm font-bold text-white">partsites-mockup.html</p>
+                                <p class="text-xs text-gray-500">ENVY 2.0 Landing Page / Calculator</p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- TEAM TAB -->
+        <div id="tab-team" class="tab-content max-w-5xl mx-auto">
+            <header class="mb-8">
+                <h2 class="text-2xl font-bold text-white">Team & Sub-Agents</h2>
+                <p class="text-sm text-gray-400 mt-1">Orchestration and role delegation.</p>
+            </header>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-gray-900 rounded-xl p-6 border border-red-500/50 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-red-600 text-white text-xs px-2 py-1 rounded-bl">Lead Agent</div>
+                    <h3 class="text-lg font-bold text-white mb-1">PenPen</h3>
+                    <p class="text-xs text-gray-500 mb-4">Model: Gemini 3.1 Pro (Hybrid: Claude Opus)</p>
+                    <p class="text-sm text-gray-300">Executive AI focused on revenue generation, pipeline execution, and high-level strategy.</p>
+                </div>
+                <div class="bg-gray-900 rounded-xl p-6 border border-gray-800 border-dashed flex flex-col items-center justify-center text-center opacity-50 hover:opacity-100 transition-opacity cursor-pointer">
+                    <span class="text-2xl mb-2">+</span>
+                    <p class="text-sm font-bold text-white">Spawn Sub-Agent</p>
+                    <p class="text-xs text-gray-500">Delegate coding, research, or drafting.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- BOOKMARKS TAB -->
+        <div id="tab-bookmarks" class="tab-content max-w-5xl mx-auto">
+            <header class="mb-8">
+                <h2 class="text-2xl font-bold text-white">Bookmarks & Demo Sites</h2>
+                <p class="text-sm text-gray-400 mt-1">Quick access to live landing pages, CRM pipelines, and external tools.</p>
+            </header>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- PartSites Mockup -->
+                <a href="https://modmotive69.github.io/smartdealer-minisite/partsites-mockup.html" target="_blank" class="block bg-gray-900 rounded-xl p-6 border border-gray-800 hover:border-red-500/50 transition-colors group">
+                    <div class="flex items-center mb-4">
+                        <div class="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center mr-4 border border-red-200">
+                            <span class="text-lg">🛒</span>
+                        </div>
+                        <h3 class="text-lg font-bold text-white group-hover:text-red-500 transition-colors">PartSites 2.0</h3>
+                    </div>
+                    <p class="text-sm text-gray-400">The "Commodity Killer" landing page. $99/mo aggressive hook with savings calculator.</p>
+                    <div class="mt-4 flex items-center text-xs font-bold text-red-500">
+                        View Live Site →
+                    </div>
+                </a>
+
+                <!-- SmartDealer Minisite -->
+                <a href="https://modmotive69.github.io/smartdealer-minisite/" target="_blank" class="block bg-gray-900 rounded-xl p-6 border border-gray-800 hover:border-blue-500/50 transition-colors group">
+                    <div class="flex items-center mb-4">
+                        <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-4 border border-blue-200">
+                            <span class="text-lg"><i class="fa-solid fa-building"></i></span>
+                        </div>
+                        <h3 class="text-lg font-bold text-white group-hover:text-blue-500 transition-colors">SmartDealer Main</h3>
+                    </div>
+                    <p class="text-sm text-gray-400">The primary corporate minisite. Hero slider, product portfolio overview.</p>
+                    <div class="mt-4 flex items-center text-xs font-bold text-blue-500">
+                        View Live Site →
+                    </div>
+                </a>
+
+                <!-- HubSpot CRM -->
+                <a href="https://app.hubspot.com/deals/" target="_blank" class="block bg-gray-900 rounded-xl p-6 border border-gray-800 hover:border-orange-500/50 transition-colors group">
+                    <div class="flex items-center mb-4">
+                        <div class="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center mr-4 border border-orange-200">
+                            <span class="text-lg"><i class="fa-solid fa-chart-bar"></i></span>
+                        </div>
+                        <h3 class="text-lg font-bold text-white group-hover:text-orange-500 transition-colors">HubSpot Pipeline</h3>
+                    </div>
+                    <p class="text-sm text-gray-400">The PartSites Conquest Deal Pipeline. Where the Dark Matter Scraper drops new leads.</p>
+                    <div class="mt-4 flex items-center text-xs font-bold text-orange-500">
+                        Open CRM →
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <!-- DATABASE TAB -->
+        <div id="tab-database" class="tab-content max-w-5xl mx-auto">
+            <header class="mb-8">
+                <h2 class="text-2xl font-bold text-white">Target Database</h2>
+                <p class="text-sm text-gray-400 mt-1">Local extraction engine tracking high-value automotive targets.</p>
+            </header>
+            
+            <div class="grid grid-cols-1 gap-8">
+                
+                <!-- Apollo Subcat -->
+                <div class="bg-gray-900 rounded-xl p-6 border border-gray-800">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-sm font-bold text-blue-400 uppercase tracking-wider">Apollo Leads (Cleaned)</h3>
+                        <button class="bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs font-bold py-1 px-3 rounded transition-colors">+ Import CSV</button>
+                    </div>
+                    <div class="overflow-hidden border border-gray-800 rounded-lg">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-black text-gray-400 uppercase text-xs">
+                                <tr>
+                                    <th class="px-4 py-3 border-b border-gray-800 w-1/2">File Name</th>
+                                    <th class="px-4 py-3 border-b border-gray-800 w-1/4">Size / Records</th>
+                                    <th class="px-4 py-3 border-b border-gray-800 text-right w-1/4">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="db-apollo-list" class="divide-y divide-gray-800 bg-gray-900/50">
+                                <!-- Files injected via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Scraped Subcat -->
+                <div class="bg-gray-900 rounded-xl p-6 border border-gray-800">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-sm font-bold text-red-400 uppercase tracking-wider">Scraped Leads (Dark Matter)</h3>
+                        <button class="bg-red-600 hover:bg-red-700 text-white text-xs font-bold py-1 px-3 rounded shadow-lg shadow-red-600/20 transition-all">Run Scraper Now</button>
+                    </div>
+                    <div class="overflow-hidden border border-gray-800 rounded-lg">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-black text-gray-400 uppercase text-xs">
+                                <tr>
+                                    <th class="px-4 py-3 border-b border-gray-800 w-1/2">File Name</th>
+                                    <th class="px-4 py-3 border-b border-gray-800 w-1/4">Size / Records</th>
+                                    <th class="px-4 py-3 border-b border-gray-800 text-right w-1/4">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="db-scraped-list" class="divide-y divide-gray-800 bg-gray-900/50">
+                                <!-- Files injected via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- TEAM TAB -->
+        <div id="tab-team-agents" class="tab-content max-w-6xl mx-auto">
+            <header class="flex justify-between items-center mb-8">
+                <div>
+                    <h2 class="text-2xl font-bold text-white">Team</h2>
+                    <p class="text-sm text-gray-400 mt-1">Sub-agents, roles, and task assignments.</p>
+                </div>
+                <button onclick="loadTeam()" class="bg-gray-800 hover:bg-gray-700 text-gray-300 text-sm font-bold py-2 px-4 rounded transition-colors">↻ Refresh</button>
+            </header>
+
+            <!-- Flow Diagram -->
+            <div class="bg-gray-900 rounded-xl p-6 border border-gray-800 mb-8 overflow-x-auto">
+                <h3 class="text-sm font-bold text-gray-300 uppercase tracking-wider mb-6">Command Structure</h3>
+                <div class="flex flex-col items-center" style="min-width:700px;">
+
+                    <!-- Scott -->
+                    <div class="bg-gray-800 border border-gray-600 rounded-xl px-6 py-3 text-center mb-2">
+                        <p class="text-base font-extrabold text-white">👤 Scott Anderson</p>
+                        <p class="text-xs text-gray-500">CEO · SmartDealer</p>
+                    </div>
+                    <div class="w-px h-6 bg-red-500"></div>
+
+                    <!-- PenPen -->
+                    <div class="bg-red-950 border-2 border-red-500 rounded-xl px-6 py-3 text-center mb-2 relative">
+                        <div class="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-red-600 text-white text-xs px-2 py-0.5 rounded-full font-bold">LEAD AGENT</div>
+                        <p class="text-base font-extrabold text-white mt-1">🐧 PenPen</p>
+                        <p class="text-xs text-red-400 font-mono">claude-sonnet-4-6</p>
+                        <p class="text-xs text-gray-500 mt-1">Strategy · Decisions · Revenue</p>
+                    </div>
+
+                    <!-- Connector line to agents -->
+                    <div class="w-px h-6 bg-gray-600"></div>
+                    <div class="flex items-start gap-0 w-full justify-center">
+                        <!-- Left branch lines -->
+                        <div class="flex flex-col items-end" style="width:350px;">
+                            <div class="flex gap-8 justify-end">
+                                <!-- Scout -->
+                                <div class="flex flex-col items-center">
+                                    <div class="w-px h-6 bg-blue-500"></div>
+                                    <div class="bg-blue-950 border border-blue-500 rounded-xl p-3 text-center w-44">
+                                        <p class="text-sm font-bold text-white">🔭 Scout</p>
+                                        <p class="text-xs text-blue-400 font-mono">llama3.2:3b · local</p>
+                                        <div class="mt-2 space-y-1">
+                                            <div class="bg-blue-900/40 rounded px-2 py-0.5 text-xs text-blue-300"><i class="fa-solid fa-newspaper"></i> Daily news digest</div>
+                                            <div class="bg-blue-900/40 rounded px-2 py-0.5 text-xs text-blue-300"><i class="fa-solid fa-magnifying-glass"></i> Industry research</div>
+                                            <div class="bg-blue-900/40 rounded px-2 py-0.5 text-xs text-blue-300"><i class="fa-solid fa-lightbulb"></i> OpenClaw tips</div>
+                                        </div>
+                                        <p class="text-xs text-green-400 mt-2 font-bold">Free · Always On</p>
+                                    </div>
+                                </div>
+                                <!-- Scribe -->
+                                <div class="flex flex-col items-center">
+                                    <div class="w-px h-6 bg-green-500"></div>
+                                    <div class="bg-green-950 border border-green-500 rounded-xl p-3 text-center w-44">
+                                        <p class="text-sm font-bold text-white">✍️ Scribe</p>
+                                        <p class="text-xs text-green-400 font-mono">llama3.2:3b · local</p>
+                                        <div class="mt-2 space-y-1">
+                                            <div class="bg-green-900/40 rounded px-2 py-0.5 text-xs text-green-300"><i class="fa-solid fa-envelope"></i> Email drafts</div>
+                                            <div class="bg-green-900/40 rounded px-2 py-0.5 text-xs text-green-300"><i class="fa-solid fa-file-pen"></i> Summaries</div>
+                                            <div class="bg-green-900/40 rounded px-2 py-0.5 text-xs text-green-300"><i class="fa-solid fa-file"></i> Routine writing</div>
+                                        </div>
+                                        <p class="text-xs text-green-400 mt-2 font-bold">Free · Always On</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Center divider -->
+                        <div class="w-px bg-gray-700 mx-4" style="height:140px;"></div>
+
+                        <!-- Right branch -->
+                        <div class="flex flex-col items-start" style="width:350px;">
+                            <div class="flex gap-8 justify-start">
+                                <!-- Sentry -->
+                                <div class="flex flex-col items-center">
+                                    <div class="w-px h-6 bg-purple-500"></div>
+                                    <div class="bg-purple-950 border border-purple-500 rounded-xl p-3 text-center w-44">
+                                        <p class="text-sm font-bold text-white"><i class="fa-solid fa-shield-halved"></i> Sentry</p>
+                                        <p class="text-xs text-purple-400 font-mono">claude-haiku-4 · api</p>
+                                        <div class="mt-2 space-y-1">
+                                            <div class="bg-purple-900/40 rounded px-2 py-0.5 text-xs text-purple-300">💓 Heartbeats</div>
+                                            <div class="bg-purple-900/40 rounded px-2 py-0.5 text-xs text-purple-300"><i class="fa-regular fa-inbox"></i> Email triage</div>
+                                            <div class="bg-purple-900/40 rounded px-2 py-0.5 text-xs text-purple-300"><i class="fa-solid fa-alarm-clock"></i> Cron monitoring</div>
+                                        </div>
+                                        <p class="text-xs text-gray-500 mt-2">~$0.0002/run</p>
+                                    </div>
+                                </div>
+                                <!-- Closer -->
+                                <div class="flex flex-col items-center">
+                                    <div class="w-px h-6 bg-orange-500"></div>
+                                    <div class="bg-orange-950 border border-orange-500 rounded-xl p-3 text-center w-44">
+                                        <p class="text-sm font-bold text-white"><i class="fa-solid fa-bullseye"></i> Closer</p>
+                                        <p class="text-xs text-orange-400 font-mono">claude-haiku-4 · api</p>
+                                        <div class="mt-2 space-y-1">
+                                            <div class="bg-orange-900/40 rounded px-2 py-0.5 text-xs text-orange-300">🏷️ Lead qualify</div>
+                                            <div class="bg-orange-900/40 rounded px-2 py-0.5 text-xs text-orange-300"><i class="fa-solid fa-chart-bar"></i> HubSpot updates</div>
+                                            <div class="bg-orange-900/40 rounded px-2 py-0.5 text-xs text-orange-300"><i class="fa-solid fa-rocket"></i> Apollo pipeline</div>
+                                        </div>
+                                        <p class="text-xs text-gray-500 mt-2">~$0.0002/run</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Legend -->
+                    <div class="flex gap-6 mt-8 text-xs text-gray-500">
+                        <span class="flex items-center gap-1"><span class="w-3 h-px bg-green-400 inline-block"></span> Free (local)</span>
+                        <span class="flex items-center gap-1"><span class="w-3 h-px bg-purple-400 inline-block"></span> Haiku (API ~free)</span>
+                        <span class="flex items-center gap-1"><span class="w-3 h-px bg-red-500 inline-block"></span> Sonnet (API)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Agent Roster -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mb-8" id="team-roster">
+
+                <!-- PenPen -->
+                <div class="bg-gray-900 rounded-xl p-5 border border-red-500/50 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-red-600 text-white text-xs px-2 py-1 rounded-bl font-bold">Lead</div>
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-12 h-12 rounded-full bg-red-600 flex items-center justify-center text-2xl">🐧</div>
+                        <div>
+                            <h3 class="text-base font-bold text-white">PenPen</h3>
+                            <p class="text-xs text-gray-500 font-mono">anthropic/claude-sonnet-4-6</p>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-400 mb-3">Strategy, revenue decisions, complex reasoning, Scott's direct chat.</p>
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="flex items-center gap-1 text-green-400"><span class="w-1.5 h-1.5 rounded-full bg-green-400 inline-block"></span> Online · API</span>
+                        <span class="text-gray-600">~$0.003/msg</span>
+                    </div>
+                </div>
+
+                <!-- Scout -->
+                <div class="bg-gray-900 rounded-xl p-5 border border-blue-900/50 hover:border-blue-500/50 transition-colors" id="agent-scout">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-12 h-12 rounded-full bg-blue-900 flex items-center justify-center text-2xl">🔭</div>
+                        <div>
+                            <h3 class="text-base font-bold text-white">Scout</h3>
+                            <p class="text-xs text-gray-500 font-mono" id="scout-model">llama3.2:3b (local)</p>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-400 mb-3">Industry news, OpenClaw tips, web research, daily digests.</p>
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="flex items-center gap-1" id="scout-status"><span class="w-1.5 h-1.5 rounded-full bg-yellow-400 inline-block"></span> <span class="text-yellow-400">Checking...</span></span>
+                        <span class="text-green-400 font-bold">Free · Local</span>
+                    </div>
+                </div>
+
+                <!-- Sentry -->
+                <div class="bg-gray-900 rounded-xl p-5 border border-purple-900/50 hover:border-purple-500/50 transition-colors">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-12 h-12 rounded-full bg-purple-900 flex items-center justify-center text-2xl"><i class="fa-solid fa-shield-halved"></i></div>
+                        <div>
+                            <h3 class="text-base font-bold text-white">Sentry</h3>
+                            <p class="text-xs text-gray-500 font-mono">anthropic/claude-haiku-4</p>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-400 mb-3">Heartbeats, email triage, task monitoring, routine alerts.</p>
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="flex items-center gap-1 text-green-400"><span class="w-1.5 h-1.5 rounded-full bg-green-400 inline-block"></span> Online · API</span>
+                        <span class="text-gray-600">~$0.0002/msg</span>
+                    </div>
+                </div>
+
+                <!-- Scribe -->
+                <div class="bg-gray-900 rounded-xl p-5 border border-green-900/50 hover:border-green-500/50 transition-colors">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-12 h-12 rounded-full bg-green-900 flex items-center justify-center text-2xl">✍️</div>
+                        <div>
+                            <h3 class="text-base font-bold text-white">Scribe</h3>
+                            <p class="text-xs text-gray-500 font-mono">llama3.2:3b (local)</p>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-400 mb-3">Email drafts, summaries, content generation, routine writing tasks.</p>
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="flex items-center gap-1" id="scribe-status"><span class="w-1.5 h-1.5 rounded-full bg-yellow-400 inline-block"></span> <span class="text-yellow-400">Checking...</span></span>
+                        <span class="text-green-400 font-bold">Free · Local</span>
+                    </div>
+                </div>
+
+                <!-- Closer -->
+                <div class="bg-gray-900 rounded-xl p-5 border border-orange-900/50 hover:border-orange-500/50 transition-colors">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-12 h-12 rounded-full bg-orange-900 flex items-center justify-center text-2xl"><i class="fa-solid fa-bullseye"></i></div>
+                        <div>
+                            <h3 class="text-base font-bold text-white">Closer</h3>
+                            <p class="text-xs text-gray-500 font-mono">anthropic/claude-haiku-4</p>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-400 mb-3">Lead qualification, HubSpot updates, Apollo pipeline execution.</p>
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="flex items-center gap-1 text-green-400"><span class="w-1.5 h-1.5 rounded-full bg-green-400 inline-block"></span> Online · API</span>
+                        <span class="text-gray-600">~$0.0002/msg</span>
+                    </div>
+                </div>
+
+                <!-- Add Agent -->
+                <div class="bg-gray-900 rounded-xl p-5 border border-gray-800 border-dashed flex flex-col items-center justify-center text-center opacity-50 hover:opacity-100 transition-opacity cursor-pointer" onclick="alert('Tell PenPen to add a new agent to the team.')">
+                    <span class="text-3xl mb-2">+</span>
+                    <p class="text-sm font-bold text-white">Add Agent</p>
+                    <p class="text-xs text-gray-500 mt-1">Tell PenPen to spawn a new team member</p>
+                </div>
+
+            </div>
+
+            <!-- Assign Task to Agent -->
+            <div class="bg-gray-900 rounded-xl p-6 border border-gray-800 mb-6">
+                <h3 class="text-sm font-bold text-gray-300 uppercase tracking-wider mb-4">Assign Task to Agent</h3>
+                <div class="flex gap-3">
+                    <select id="assign-agent" class="bg-black border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-red-500">
+                        <option value="PenPen">PenPen (Sonnet)</option>
+                        <option value="Scout">Scout (Local)</option>
+                        <option value="Sentry">Sentry (Haiku)</option>
+                        <option value="Scribe">Scribe (Local)</option>
+                        <option value="Closer">Closer (Haiku)</option>
+                    </select>
+                    <input id="assign-task" type="text" placeholder="Describe the task..." class="flex-1 bg-black border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-red-500">
+                    <button onclick="assignTask()" class="bg-red-600 hover:bg-red-700 text-white text-sm font-bold py-2 px-5 rounded shadow-lg transition-all">Assign</button>
+                </div>
+            </div>
+
+            <!-- Distribution Lists -->
+            <div class="bg-gray-900 rounded-xl p-6 border border-gray-800 mb-6">
+                <h3 class="text-sm font-bold text-gray-300 uppercase tracking-wider mb-5"><i class="fa-solid fa-envelope"></i> Distribution Lists</h3>
+                <div id="dist-lists-container" class="space-y-6"></div>
+            </div>
+
+            <!-- Ollama Status -->
+            <div class="bg-gray-900 rounded-xl p-6 border border-gray-800">
+                <h3 class="text-sm font-bold text-gray-300 uppercase tracking-wider mb-4"><i class="fa-solid fa-desktop"></i> Local LLM Status (Ollama)</h3>
+                <div id="ollama-status" class="text-sm text-gray-400">Checking...</div>
+            </div>
+        </div>
+
+        <!-- INBOX TAB -->
+        <div id="tab-inbox" class="tab-content max-w-4xl mx-auto">
+            <header class="flex justify-between items-center mb-8">
+                <div><h2 class="text-2xl font-bold text-white">Inbox</h2><p class="text-sm text-gray-400 mt-1">Latest emails — spam filtered.</p></div>
+                <button onclick="loadInbox()" class="bg-gray-800 hover:bg-gray-700 text-gray-300 text-sm font-bold py-2 px-4 rounded transition-colors">↻ Refresh</button>
+            </header>
+            <div id="inbox-list" class="space-y-3"><p class="text-gray-600 text-sm">Loading...</p></div>
+        </div>
+
+        <!-- PIPELINE TAB -->
+        <div id="tab-pipeline" class="tab-content max-w-6xl mx-auto">
+            <header class="flex justify-between items-center mb-8">
+                <div><h2 class="text-2xl font-bold text-white">Pipeline</h2><p class="text-sm text-gray-400 mt-1">HubSpot PartSites Conquest — live deal feed.</p></div>
+                <div class="flex gap-3">
+                    <button onclick="loadPipeline()" class="bg-gray-800 hover:bg-gray-700 text-gray-300 text-sm font-bold py-2 px-4 rounded transition-colors">↻ Refresh</button>
+                    <a href="https://app.hubspot.com/deals/" target="_blank" class="bg-orange-600 hover:bg-orange-700 text-white text-sm font-bold py-2 px-4 rounded transition-colors">Open HubSpot ↗</a>
+                </div>
+            </header>
+
+            <!-- Stats row -->
+            <div class="grid grid-cols-3 gap-4 mb-6">
+                <div class="bg-gray-900 rounded-xl p-4 border border-gray-800 text-center">
+                    <p class="text-2xl font-extrabold text-white" id="pipe-total-deals">—</p>
+                    <p class="text-xs text-gray-500 mt-1">Total Deals</p>
+                </div>
+                <div class="bg-gray-900 rounded-xl p-4 border border-gray-800 text-center">
+                    <p class="text-2xl font-extrabold text-green-400" id="pipe-total-value">—</p>
+                    <p class="text-xs text-gray-500 mt-1">Pipeline Value</p>
+                </div>
+                <div class="bg-gray-900 rounded-xl p-4 border border-gray-800 text-center">
+                    <p class="text-2xl font-extrabold text-blue-400" id="pipe-stages">—</p>
+                    <p class="text-xs text-gray-500 mt-1">Active Stages</p>
+                </div>
+            </div>
+
+            <!-- Deal board by stage -->
+            <div id="pipeline-board" class="space-y-4">
+                <p class="text-gray-600 text-sm">Loading pipeline...</p>
+            </div>
+        </div>
+
+        <!-- SCOUT ARCHIVE TAB -->
+        <div id="tab-scout-archive" class="tab-content max-w-4xl mx-auto">
+            <header class="flex justify-between items-center mb-8">
+                <div><h2 class="text-2xl font-bold text-white">Scout Archive</h2><p class="text-sm text-gray-400 mt-1">Past daily research briefs.</p></div>
+                <button onclick="loadScoutArchive()" class="bg-gray-800 hover:bg-gray-700 text-gray-300 text-sm font-bold py-2 px-4 rounded transition-colors">↻ Refresh</button>
+            </header>
+            <div id="scout-archive-list" class="space-y-4"><p class="text-gray-600 text-sm">No briefs archived yet — Scout runs daily at 8AM.</p></div>
+        </div>
+
+        <!-- REVENUE TAB -->
+        <div id="tab-revenue" class="tab-content max-w-4xl mx-auto">
+            <header class="flex justify-between items-center mb-8">
+                <div><h2 class="text-2xl font-bold text-white">Revenue Tracker</h2><p class="text-sm text-gray-400 mt-1">Log MRR milestones and track growth.</p></div>
+            </header>
+            <!-- Log entry -->
+            <div class="bg-gray-900 rounded-xl p-6 border border-gray-800 mb-6">
+                <h3 class="text-sm font-bold text-gray-300 uppercase tracking-wider mb-4">Log MRR Entry</h3>
+                <div class="flex gap-3">
+                    <input id="rev-date" type="date" class="bg-black border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-red-500">
+                    <input id="rev-mrr" type="number" placeholder="MRR ($)" class="flex-1 bg-black border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-red-500">
+                    <input id="rev-note" type="text" placeholder="Note (optional)" class="flex-1 bg-black border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-red-500">
+                    <button onclick="logRevenue()" class="bg-red-600 hover:bg-red-700 text-white text-sm font-bold py-2 px-5 rounded transition-all">+ Log</button>
+                </div>
+            </div>
+            <!-- Chart -->
+            <div class="bg-gray-900 rounded-xl p-6 border border-gray-800 mb-6">
+                <h3 class="text-sm font-bold text-gray-300 uppercase tracking-wider mb-4">MRR Growth</h3>
+                <canvas id="revenue-chart" height="120"></canvas>
+            </div>
+            <!-- History -->
+            <div class="bg-gray-900 rounded-xl p-6 border border-gray-800">
+                <h3 class="text-sm font-bold text-gray-300 uppercase tracking-wider mb-4">History</h3>
+                <div id="revenue-list" class="space-y-2"></div>
+            </div>
+        </div>
+
+        <!-- KNOWLEDGE BASE TAB -->
+        <div id="tab-kb" class="tab-content max-w-6xl mx-auto">
+            <header class="flex justify-between items-center mb-8">
+                <div>
+                    <h2 class="text-2xl font-bold text-white">Knowledge Base</h2>
+                    <p class="text-sm text-gray-400 mt-1">Products, sales scripts, integrations, and company context.</p>
+                </div>
+                <button onclick="loadKB()" class="bg-gray-800 hover:bg-gray-700 text-gray-300 text-sm font-bold py-2 px-4 rounded transition-colors">↻ Refresh</button>
+            </header>
+
+            <div class="flex gap-6" style="min-height:600px;">
+                <!-- Sidebar: file tree -->
+                <div class="w-64 flex-shrink-0">
+                    <input id="kb-search" type="text" placeholder="Search files..." oninput="filterKB()" class="w-full bg-black border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-red-500 mb-4">
+                    <div id="kb-tree" class="space-y-4 text-sm"></div>
+                </div>
+
+                <!-- Content viewer -->
+                <div class="flex-1 bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">
+                    <div id="kb-header" class="px-6 py-4 border-b border-gray-800 flex justify-between items-center">
+                        <p class="text-sm text-gray-500">Select a file to view</p>
+                    </div>
+                    <div id="kb-content" class="p-6 overflow-y-auto font-mono text-sm text-gray-300 whitespace-pre-wrap leading-relaxed" style="max-height:600px;">
+                        <p class="text-gray-600">← Select a file from the list</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TOKEN MONITOR TAB -->
+        <div id="tab-tokens" class="tab-content max-w-5xl mx-auto">
+            <header class="flex justify-between items-center mb-8">
+                <div>
+                    <h2 class="text-2xl font-bold text-white">Token Monitor</h2>
+                    <p class="text-sm text-gray-400 mt-1">Per-model usage, cost, and cache efficiency across all sessions.</p>
+                </div>
+                <button onclick="loadTokenStats()" class="bg-gray-800 hover:bg-gray-700 text-gray-300 text-sm font-bold py-2 px-5 rounded transition-colors">↻ Refresh</button>
+            </header>
+
+            <!-- Per-Model Summary Cards -->
+            <div id="token-model-cards" class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div class="bg-gray-900 rounded-xl p-6 border border-gray-800 flex items-center justify-center text-gray-600 text-sm">Loading...</div>
+            </div>
+
+            <!-- Aggregate Stats Bar -->
+            <div class="bg-gray-900 rounded-xl p-6 border border-gray-800 mb-8">
+                <h3 class="text-sm font-bold text-gray-300 uppercase tracking-wider mb-4">All-Time Totals</h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="text-center">
+                        <p class="text-2xl font-bold text-white" id="stat-total-in">—</p>
+                        <p class="text-xs text-gray-500 mt-1">Tokens In</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-2xl font-bold text-white" id="stat-total-out">—</p>
+                        <p class="text-xs text-gray-500 mt-1">Tokens Out</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-2xl font-bold text-green-400" id="stat-cache-total">—</p>
+                        <p class="text-xs text-gray-500 mt-1">Cache Hits</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-2xl font-bold text-red-400" id="stat-total-cost">—</p>
+                        <p class="text-xs text-gray-500 mt-1">Total Cost</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cost Breakdown Pie Chart -->
+            <div class="bg-gray-900 rounded-xl p-6 border border-gray-800 mb-8">
+                <h3 class="text-sm font-bold text-gray-300 uppercase tracking-wider mb-6">Cost Breakdown by Model</h3>
+                <div class="flex items-center justify-center gap-12">
+                    <div style="width:220px;height:220px;position:relative;">
+                        <canvas id="cost-pie-chart"></canvas>
+                        <div id="pie-center-label" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none;">
+                            <p class="text-xl font-bold text-white" id="pie-total">—</p>
+                            <p class="text-xs text-gray-500">total</p>
+                        </div>
+                    </div>
+                    <div id="pie-legend" class="space-y-3"></div>
+                </div>
+            </div>
+
+            <!-- Session History Table -->
+            <div class="bg-gray-900 rounded-xl p-6 border border-gray-800">
+                <h3 class="text-sm font-bold text-gray-300 uppercase tracking-wider mb-4">Session Log</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left">
+                        <thead class="text-xs text-gray-400 uppercase border-b border-gray-800">
+                            <tr>
+                                <th class="pb-3 pr-4">Date / Time</th>
+                                <th class="pb-3 pr-4">Model</th>
+                                <th class="pb-3 pr-4 text-right">In</th>
+                                <th class="pb-3 pr-4 text-right">Out</th>
+                                <th class="pb-3 pr-4 text-right">Cache Hit</th>
+                                <th class="pb-3 pr-4 text-right">Context %</th>
+                                <th class="pb-3 text-right">Cost</th>
+                            </tr>
+                        </thead>
+                        <tbody id="token-session-log" class="divide-y divide-gray-800 text-gray-300">
+                            <tr><td colspan="7" class="py-4 text-center text-gray-600">No sessions logged yet.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="text-xs text-gray-600 mt-4" id="token-last-updated">Last updated: —</p>
+            </div>
+        </div>
+
+        <!-- SKILLS TAB -->
+        <div id="tab-skills" class="tab-content max-w-5xl mx-auto">
+            <header class="flex justify-between items-center mb-8">
+                <div>
+                    <h2 class="text-2xl font-bold text-white">Agent Skills</h2>
+                    <p class="text-sm text-gray-400 mt-1">Installed automation modules PenPen can invoke on demand.</p>
+                </div>
+                <span class="bg-gray-800 text-gray-400 text-xs py-1 px-3 rounded-full font-mono">3 installed</span>
+            </header>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                <!-- Apollo to HubSpot -->
+                <div class="bg-gray-900 rounded-xl p-6 border border-gray-800 hover:border-blue-500/50 transition-colors">
+                    <div class="flex items-start justify-between mb-3">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 bg-blue-900/50 rounded-lg flex items-center justify-center mr-4 border border-blue-800">
+                                <span class="text-lg"><i class="fa-solid fa-circle"></i></span>
+                            </div>
+                            <div>
+                                <h3 class="text-base font-bold text-white">Apollo → HubSpot</h3>
+                                <p class="text-xs text-gray-500 font-mono">apollo-to-hubspot</p>
+                            </div>
+                        </div>
+                        <span class="bg-green-900/50 text-green-400 text-xs px-2 py-1 rounded">Active</span>
+                    </div>
+                    <p class="text-sm text-gray-400 mb-4">Ingests cleaned Apollo CSV exports and pushes contacts + companies as deals into a HubSpot pipeline. Handles deduplication and field mapping.</p>
+                    <div class="flex flex-wrap gap-2 mb-4">
+                        <span class="bg-gray-800 text-gray-400 text-xs px-2 py-1 rounded font-mono">clean_apollo_csv.py</span>
+                        <span class="bg-gray-800 text-gray-400 text-xs px-2 py-1 rounded font-mono">import_leads.py</span>
+                    </div>
+                    <div class="text-xs text-gray-600 border-t border-gray-800 pt-3"><i class="fa-regular fa-folder"></i> mission_control/skills/apollo-to-hubspot/</div>
+                </div>
+
+                <!-- Dark Matter Scraper -->
+                <div class="bg-gray-900 rounded-xl p-6 border border-gray-800 hover:border-red-500/50 transition-colors">
+                    <div class="flex items-start justify-between mb-3">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 bg-red-900/50 rounded-lg flex items-center justify-center mr-4 border border-red-800">
+                                <span class="text-lg">🕷️</span>
+                            </div>
+                            <div>
+                                <h3 class="text-base font-bold text-white">Dark Matter Scraper</h3>
+                                <p class="text-xs text-gray-500 font-mono">dark-matter-scraper</p>
+                            </div>
+                        </div>
+                        <span class="bg-green-900/50 text-green-400 text-xs px-2 py-1 rounded">Active</span>
+                    </div>
+                    <p class="text-sm text-gray-400 mb-4">Identifies automotive dealerships currently using competitor platforms (e.g., RevolutionParts). Scrapes target lists for conquest campaigns and PartSites outreach.</p>
+                    <div class="flex flex-wrap gap-2 mb-4">
+                        <span class="bg-gray-800 text-gray-400 text-xs px-2 py-1 rounded font-mono">dark_matter.py</span>
+                        <span class="bg-gray-800 text-gray-400 text-xs px-2 py-1 rounded font-mono">dark_matter_local.py</span>
+                    </div>
+                    <div class="text-xs text-gray-600 border-t border-gray-800 pt-3"><i class="fa-regular fa-folder"></i> mission_control/skills/dark-matter-scraper/</div>
+                </div>
+
+                <!-- Vertex Media Generator -->
+                <div class="bg-gray-900 rounded-xl p-6 border border-gray-800 hover:border-purple-500/50 transition-colors">
+                    <div class="flex items-start justify-between mb-3">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 bg-purple-900/50 rounded-lg flex items-center justify-center mr-4 border border-purple-800">
+                                <span class="text-lg"><i class="fa-solid fa-palette"></i></span>
+                            </div>
+                            <div>
+                                <h3 class="text-base font-bold text-white">Vertex Media Generator</h3>
+                                <p class="text-xs text-gray-500 font-mono">vertex-media-generator</p>
+                            </div>
+                        </div>
+                        <span class="bg-green-900/50 text-green-400 text-xs px-2 py-1 rounded">Active</span>
+                    </div>
+                    <p class="text-sm text-gray-400 mb-4">Generates product images and marketing visuals using Google Vertex AI (Imagen). Used for creating logos, hero images, and ad creative for SmartDealer products.</p>
+                    <div class="flex flex-wrap gap-2 mb-4">
+                        <span class="bg-gray-800 text-gray-400 text-xs px-2 py-1 rounded font-mono">generate_image.py</span>
+                        <span class="bg-gray-800 text-gray-400 text-xs px-2 py-1 rounded font-mono">generate_image_sdk.py</span>
+                    </div>
+                    <div class="text-xs text-gray-600 border-t border-gray-800 pt-3"><i class="fa-regular fa-folder"></i> mission_control/skills/vertex-media-generator/</div>
+                </div>
+
+                <!-- Add New Skill CTA -->
+                <div class="bg-gray-900 rounded-xl p-6 border border-gray-800 border-dashed flex flex-col items-center justify-center text-center opacity-50 hover:opacity-100 transition-opacity cursor-pointer" onclick="alert('Tell PenPen: \'create a new skill for [task]\'')">
+                    <span class="text-3xl mb-3"><i class="fa-solid fa-bolt"></i></span>
+                    <p class="text-sm font-bold text-white">Add New Skill</p>
+                    <p class="text-xs text-gray-500 mt-1">Tell PenPen to "create a skill for..." in chat.</p>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Tab Switching Logic
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('tab-active'));
+            document.querySelectorAll('.nav-btn').forEach(el => {
+                el.classList.remove('active-tab');
+                el.classList.add('text-gray-400');
+            });
+            
+            document.getElementById('tab-' + tabId).classList.add('tab-active');
+            const activeNav = document.getElementById('nav-' + tabId);
+            activeNav.classList.add('active-tab');
+            activeNav.classList.remove('text-gray-400');
+        }
+
+        // Task Board Logic - Server Backend
+        let tasks = [];
+
+        async function fetchTasks() {
+            try {
+                const response = await fetch('/api/tasks');
+                const data = await response.json();
+                tasks = data.tasks || [];
+                renderBoard();
+            } catch (error) {
+                console.error('Error fetching tasks:', error);
+            }
+            
+            try {
+                const fileRes = await fetch('/api/files');
+                const fileData = await fileRes.json();
+                renderFiles(fileData.apollo_files || [], fileData.scraped_files || []);
+            } catch (error) {
+                console.error('Error fetching files:', error);
+            }
+        }
+
+        function renderFiles(apollo_files, scraped_files) {
+            const dbApolloList = document.getElementById('db-apollo-list');
+            const dbScrapedList = document.getElementById('db-scraped-list');
+            
+            dbApolloList.innerHTML = '';
+            dbScrapedList.innerHTML = '';
+            
+            if(apollo_files.length === 0) {
+                dbApolloList.innerHTML = `
+                    <tr class="hover:bg-gray-800/50 transition-colors">
+                        <td class="px-4 py-4 text-gray-300 font-mono">No Apollo extractions found</td>
+                        <td class="px-4 py-4 text-gray-500">--</td>
+                        <td class="px-4 py-4 text-right"></td>
+                    </tr>
+                `;
+            } else {
+                apollo_files.forEach(f => {
+                    const isCleaned = f.name.includes('cleaned');
+                    const badge = isCleaned ? `<span class="bg-green-900/50 text-green-400 text-[10px] px-2 py-0.5 rounded-full ml-2">Cleaned</span>` : `<span class="bg-yellow-900/50 text-yellow-400 text-[10px] px-2 py-0.5 rounded-full ml-2">Raw</span>`;
+                    
+                    const actionBtn = isCleaned ? 
+                        `<button onclick="addTask('Inject ${f.name} into HubSpot Pipeline')" class="bg-blue-600/20 border border-blue-500/30 text-blue-400 hover:bg-blue-600 hover:text-white transition-colors text-xs font-bold py-1.5 px-4 rounded">Push to Pipeline</button>` : 
+                        `<button onclick="addTask('Clean Apollo list ${f.name} (Remove OEMs & Duplicates)')" class="bg-yellow-600/20 border border-yellow-500/30 text-yellow-400 hover:bg-yellow-600 hover:text-white transition-colors text-xs font-bold py-1.5 px-4 rounded">Clean File</button>`;
+
+                    dbApolloList.innerHTML += `
+                        <tr class="hover:bg-gray-800/50 transition-colors">
+                            <td class="px-4 py-4 text-gray-300 font-mono truncate max-w-xs">${f.name} ${badge}</td>
+                            <td class="px-4 py-4 text-gray-400">${f.records} leads <span class="text-gray-600 text-xs ml-2">(${f.size})</span></td>
+                            <td class="px-4 py-4 text-right">
+                                ${actionBtn}
+                            </td>
+                        </tr>
+                    `;
+                });
+            }
+
+            if(scraped_files.length === 0) {
+                dbScrapedList.innerHTML = `
+                    <tr class="hover:bg-gray-800/50 transition-colors">
+                        <td class="px-4 py-4 text-gray-300 font-mono">No Scraped extractions found</td>
+                        <td class="px-4 py-4 text-gray-500">--</td>
+                        <td class="px-4 py-4 text-right"></td>
+                    </tr>
+                `;
+            } else {
+                scraped_files.forEach(f => {
+                    dbScrapedList.innerHTML += `
+                        <tr class="hover:bg-gray-800/50 transition-colors">
+                            <td class="px-4 py-4 text-gray-300 font-mono truncate max-w-xs">${f.name}</td>
+                            <td class="px-4 py-4 text-gray-400">${f.records} URLs <span class="text-gray-600 text-xs ml-2">(${f.size})</span></td>
+                            <td class="px-4 py-4 text-right">
+                                <button class="bg-gray-800 text-gray-500 text-xs font-bold py-1.5 px-4 rounded cursor-not-allowed">
+                                    Raw Data
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            }
+        }
+
+        async function moveTask(taskId, newStatus) {
+            try {
+                await fetch(`/api/tasks/${taskId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: newStatus })
+                });
+                await fetchTasks();
+                if (document.getElementById('tab-dashboard').classList.contains('tab-active')) loadDashboard();
+                logActivity(`Task ${taskId.slice(-4)} → ${newStatus}`);
+            } catch(e) { console.error('moveTask error', e); }
+        }
+
+        async function saveTask(task) {
+            try {
+                await fetch('/api/tasks', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(task)
+                });
+                await fetchTasks();
+        setInterval(fetchTasks, 5000); // Re-render from server truth
+            } catch (error) {
+                console.error('Error saving task:', error);
+            }
+        }
+
+        function addTask() {
+            const desc = prompt("Enter new task for PenPen (e.g., 'Run Dark Matter on FL dealers'):");
+            if (!desc) return;
+            
+            const newTask = {
+                id: Date.now().toString(),
+                desc: desc,
+                status: 'todo',
+                created: new Date().toISOString()
+            };
+            
+            logActivity(`Added task: ${desc}`);
+            saveTask(newTask);
+        }
+
+        function logActivity(msg) {
+            const feed = document.getElementById('activity-feed');
+            const time = new Date().toLocaleTimeString();
+            feed.innerHTML += `<div><span class="text-gray-600">[${time}]</span> ${msg}</div>`;
+            feed.scrollTop = feed.scrollHeight;
+        }
+
+        function renderBoard() {
+            const todo = document.getElementById('todo-list');
+            const ip = document.getElementById('inprogress-list');
+            const done = document.getElementById('done-list');
+            
+            todo.innerHTML = ''; ip.innerHTML = ''; done.innerHTML = '';
+            let tCount = 0, iCount = 0, dCount = 0;
+
+            tasks.forEach(t => {
+                const actions = t.status === 'todo'
+                    ? `<button onclick="moveTask('${t.id}','inprogress')" class="bg-blue-600/20 border border-blue-500/30 text-blue-400 hover:bg-blue-600 hover:text-white text-xs font-bold py-1 px-3 rounded transition-all">▶ Start</button>`
+                    : t.status === 'inprogress'
+                    ? `<button onclick="moveTask('${t.id}','done')" class="bg-green-600/20 border border-green-500/30 text-green-400 hover:bg-green-600 hover:text-white text-xs font-bold py-1 px-3 rounded transition-all">✓ Complete</button>
+                       <button onclick="moveTask('${t.id}','todo')" class="bg-gray-700 text-gray-400 hover:bg-gray-600 text-xs font-bold py-1 px-3 rounded transition-all ml-1">↩ Back</button>`
+                    : `<button onclick="moveTask('${t.id}','todo')" class="bg-gray-700 text-gray-400 hover:bg-gray-600 text-xs py-1 px-3 rounded transition-all">↩ Reopen</button>`;
+
+                const card = `
+                    <div class="task-card p-4 rounded-lg shadow-sm">
+                        <p class="text-sm text-gray-200 mb-3">${t.desc}</p>
+                        <div class="flex justify-between items-center text-xs text-gray-500">
+                            <span>ID: ${t.id.slice(-4)}</span>
+                            <div class="flex items-center gap-2">
+                                ${t.status === 'todo' ? '<span class="text-red-400 animate-pulse">Waiting</span>' : ''}
+                                ${t.status === 'inprogress' ? '<span class="text-blue-400 animate-pulse">In Progress</span>' : ''}
+                                ${t.status === 'done' ? '<span class="text-green-400">Done</span>' : ''}
+                                ${actions}
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                if(t.status === 'todo') { todo.innerHTML += card; tCount++; }
+                if(t.status === 'inprogress') { ip.innerHTML += card; iCount++; }
+                if(t.status === 'done') { done.innerHTML += card; dCount++; }
+            });
+
+            document.getElementById('todo-count').innerText = tCount;
+            document.getElementById('ip-count').innerText = iCount;
+            document.getElementById('done-count').innerText = dCount;
+        }
+
+        // Team Logic
+        async function loadDistLists() {
+            try {
+                const res = await fetch('/api/dist-lists');
+                const data = await res.json();
+                const container = document.getElementById('dist-lists-container');
+                container.innerHTML = '';
+
+                for (const list of data.lists) {
+                    const div = document.createElement('div');
+                    div.innerHTML = `
+                        <div class="flex justify-between items-center mb-3">
+                            <div>
+                                <h4 class="text-sm font-bold text-white">${list.name}</h4>
+                                <p class="text-xs text-gray-500">${list.description}</p>
+                            </div>
+                            <span class="bg-gray-800 text-gray-400 text-xs px-2 py-1 rounded-full">${list.contacts.length} contacts</span>
+                        </div>
+                        <div class="bg-black rounded-lg border border-gray-800 overflow-hidden mb-3">
+                            <table class="w-full text-sm">
+                                <thead class="bg-gray-900 text-xs text-gray-500 uppercase">
+                                    <tr>
+                                        <th class="px-4 py-2 text-left">Name</th>
+                                        <th class="px-4 py-2 text-left">Email</th>
+                                        <th class="px-4 py-2 text-right">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="list-${list.id}" class="divide-y divide-gray-800">
+                                    ${list.contacts.map(c => `
+                                        <tr class="hover:bg-gray-800/30 transition-colors">
+                                            <td class="px-4 py-2 text-gray-300">${c.name}</td>
+                                            <td class="px-4 py-2 text-gray-500 font-mono text-xs">${c.email}</td>
+                                            <td class="px-4 py-2 text-right">
+                                                <button onclick="removeContact('${list.id}','${c.email}')" class="text-red-400 hover:text-red-300 text-xs font-bold transition-colors">Remove</button>
+                                            </td>
+                                        </tr>`).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="flex gap-2">
+                            <input id="new-name-${list.id}" type="text" placeholder="Full name" class="flex-1 bg-black border border-gray-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-red-500">
+                            <input id="new-email-${list.id}" type="email" placeholder="email@company.com" class="flex-1 bg-black border border-gray-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-red-500">
+                            <button onclick="addContact('${list.id}')" class="bg-red-600 hover:bg-red-700 text-white text-xs font-bold py-2 px-4 rounded transition-all">+ Add</button>
+                        </div>
+                    `;
+                    container.appendChild(div);
+                }
+            } catch(e) { console.error('Dist lists error', e); }
+        }
+
+        async function addContact(listId) {
+            const name = document.getElementById(`new-name-${listId}`).value.trim();
+            const email = document.getElementById(`new-email-${listId}`).value.trim();
+            if (!name || !email) return;
+            await fetch(`/api/dist-lists/${listId}/contacts`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({name, email})
+            });
+            document.getElementById(`new-name-${listId}`).value = '';
+            document.getElementById(`new-email-${listId}`).value = '';
+            loadDistLists();
+        }
+
+        async function removeContact(listId, email) {
+            if (!confirm(`Remove ${email}?`)) return;
+            await fetch(`/api/dist-lists/${listId}/contacts/${encodeURIComponent(email)}`, {method: 'DELETE'});
+            loadDistLists();
+        }
+
+        async function loadTeam() {
+            loadDistLists();
+            // Check Ollama status
+            try {
+                const res = await fetch('http://localhost:11434/api/tags');
+                const data = await res.json();
+                const models = data.models || [];
+                const hasLlama = models.find(m => m.name.includes('llama3.2'));
+                const modelList = models.map(m => `<span class="bg-gray-800 text-green-400 text-xs px-2 py-1 rounded font-mono mr-2">${m.name}</span>`).join('');
+
+                document.getElementById('ollama-status').innerHTML = `
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="w-2 h-2 rounded-full bg-green-400"></span>
+                        <span class="text-green-400 font-bold">Ollama Online</span>
+                        <span class="text-gray-600 text-xs">${models.length} model(s) loaded</span>
+                    </div>
+                    <div>${modelList}</div>
+                    ${!hasLlama ? '<p class="text-yellow-400 text-xs mt-3"><i class="fa-solid fa-triangle-exclamation"></i> llama3.2:3b not yet downloaded — Scout & Scribe will be online once the model pull completes.</p>' : ''}
+                `;
+
+                const localStatus = hasLlama
+                    ? `<span class="w-1.5 h-1.5 rounded-full bg-green-400 inline-block"></span> <span class="text-green-400">Online · Local</span>`
+                    : `<span class="w-1.5 h-1.5 rounded-full bg-yellow-400 inline-block"></span> <span class="text-yellow-400">Downloading model...</span>`;
+
+                document.getElementById('scout-status').innerHTML = localStatus;
+                document.getElementById('scribe-status').innerHTML = localStatus;
+
+            } catch(e) {
+                document.getElementById('ollama-status').innerHTML = '<span class="text-red-400">Ollama offline — run: ollama serve</span>';
+                document.getElementById('scout-status').innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-red-500 inline-block"></span> <span class="text-red-400">Offline</span>';
+                document.getElementById('scribe-status').innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-red-500 inline-block"></span> <span class="text-red-400">Offline</span>';
+            }
+        }
+
+        function assignTask() {
+            const agent = document.getElementById('assign-agent').value;
+            const task = document.getElementById('assign-task').value.trim();
+            if (!task) return;
+
+            const desc = `${agent}: ${task}`;
+            const newTask = { id: Date.now().toString(), desc, status: 'todo', created: new Date().toISOString() };
+            document.getElementById('assign-task').value = '';
+            logActivity ? logActivity(`Assigned to ${agent}: ${task}`) : null;
+            saveTask(newTask);
+            alert(`Task assigned to ${agent}!`);
+        }
+
+        // Pipeline Logic
+        async function loadPipeline() {
+            document.getElementById('pipeline-board').innerHTML = '<p class="text-gray-600 text-sm">Loading...</p>';
+            try {
+                const res = await fetch('/api/pipeline');
+                const data = await res.json();
+                const deals = data.deals || [];
+
+                // Stats
+                let totalValue = 0;
+                deals.forEach(d => { if (d.amount) totalValue += parseFloat(d.amount); });
+                document.getElementById('pipe-total-deals').innerText = deals.length;
+                document.getElementById('pipe-total-value').innerText = totalValue > 0 ? '$' + totalValue.toLocaleString() : '—';
+
+                // Group by stage
+                const stages = {};
+                deals.forEach(d => {
+                    if (!stages[d.stage]) stages[d.stage] = [];
+                    stages[d.stage].push(d);
+                });
+                document.getElementById('pipe-stages').innerText = Object.keys(stages).length;
+
+                const stageColors = ['blue','purple','green','yellow','orange','red'];
+                const board = document.getElementById('pipeline-board');
+                board.innerHTML = '';
+
+                Object.entries(stages).forEach(([stage, stageDeals], i) => {
+                    const color = stageColors[i % stageColors.length];
+                    const div = document.createElement('div');
+                    div.className = 'bg-gray-900 rounded-xl border border-gray-800 overflow-hidden';
+                    div.innerHTML = `
+                        <div class="flex justify-between items-center px-5 py-3 border-b border-gray-800 bg-${color}-900/20">
+                            <h3 class="text-sm font-bold text-${color}-400 uppercase tracking-wider">${stage}</h3>
+                            <span class="bg-${color}-900/50 text-${color}-400 text-xs px-2 py-1 rounded-full">${stageDeals.length} deal${stageDeals.length !== 1 ? 's' : ''}</span>
+                        </div>
+                        <div class="divide-y divide-gray-800">
+                            ${stageDeals.map(d => `
+                                <div class="flex items-center justify-between px-5 py-3 hover:bg-gray-800/30 transition-colors">
+                                    <div>
+                                        <p class="text-sm text-white">${d.name}</p>
+                                        <p class="text-xs text-gray-500 font-mono">${d.modified ? new Date(d.modified).toLocaleDateString() : '—'}</p>
+                                    </div>
+                                    <div class="flex items-center gap-3">
+                                        ${d.amount ? `<span class="text-sm font-bold text-green-400">$${parseFloat(d.amount).toLocaleString()}</span>` : ''}
+                                        <a href="https://app.hubspot.com/contacts/deals/${d.id}" target="_blank" class="text-xs text-gray-600 hover:text-blue-400 transition-colors">View ↗</a>
+                                    </div>
+                                </div>`).join('')}
+                        </div>`;
+                    board.appendChild(div);
+                });
+
+                if (!deals.length) board.innerHTML = '<p class="text-gray-600 text-sm p-4">No deals found. Run Apollo pull to populate the pipeline.</p>';
+
+            } catch(e) {
+                document.getElementById('pipeline-board').innerHTML = `<p class="text-red-400 text-sm">${e.message}</p>`;
+            }
+        }
+
+        // Inbox Logic
+        async function loadInbox() {
+            document.getElementById('inbox-list').innerHTML = '<p class="text-gray-600 text-sm">Loading...</p>';
+            try {
+                const res = await fetch('/api/inbox');
+                const data = await res.json();
+                const emails = data.emails || [];
+                if (!emails.length) {
+                    document.getElementById('inbox-list').innerHTML = '<p class="text-gray-600 text-sm">No emails found.</p>';
+                    return;
+                }
+                document.getElementById('inbox-list').innerHTML = emails.map(e => {
+                    const date = new Date(e.received).toLocaleString();
+                    const unread = !e.is_read ? 'border-blue-500/50 bg-blue-900/10' : 'border-gray-800';
+                    const dot = !e.is_read ? '<span class="w-2 h-2 rounded-full bg-blue-400 inline-block flex-shrink-0 mt-1"></span>' : '<span class="w-2 h-2 rounded-full bg-gray-700 inline-block flex-shrink-0 mt-1"></span>';
+                    return `
+                    <div class="bg-gray-900 rounded-xl p-4 border ${unread} hover:border-gray-600 transition-colors cursor-pointer" onclick="markRead('${e.id}', this)">
+                        <div class="flex items-start gap-3">
+                            ${dot}
+                            <div class="flex-1 min-w-0">
+                                <div class="flex justify-between items-start mb-1">
+                                    <p class="text-sm font-bold text-white truncate">${e.from_name || e.from_email}</p>
+                                    <p class="text-xs text-gray-600 flex-shrink-0 ml-4">${date}</p>
+                                </div>
+                                <p class="text-sm text-gray-300 mb-1">${e.subject}</p>
+                                <p class="text-xs text-gray-500 truncate">${e.preview}</p>
+                            </div>
+                        </div>
+                    </div>`;
+                }).join('');
+            } catch(e) { document.getElementById('inbox-list').innerHTML = `<p class="text-red-400 text-sm">Error: ${e.message}</p>`; }
+        }
+
+        async function markRead(emailId, el) {
+            await fetch(`/api/inbox/${emailId}/read`, {method: 'POST'});
+            el.querySelector('span').className = 'w-2 h-2 rounded-full bg-gray-700 inline-block flex-shrink-0 mt-1';
+            el.className = el.className.replace('border-blue-500/50 bg-blue-900/10', 'border-gray-800');
+        }
+
+        // Scout Archive Logic
+        async function loadScoutArchive() {
+            try {
+                const res = await fetch('/api/scout-archive');
+                const data = await res.json();
+                const briefs = data.briefs || [];
+                const el = document.getElementById('scout-archive-list');
+                if (!briefs.length) {
+                    el.innerHTML = '<p class="text-gray-600 text-sm">No briefs archived yet — Scout runs daily at 8AM.</p>';
+                    return;
+                }
+                el.innerHTML = briefs.map(b => `
+                    <div class="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">
+                        <div class="flex justify-between items-center px-5 py-3 border-b border-gray-800 cursor-pointer hover:bg-gray-800/50 transition-colors" onclick="this.nextElementSibling.classList.toggle('hidden')">
+                            <p class="text-sm font-bold text-white">🔭 ${b.date}</p>
+                            <span class="text-gray-600 text-xs">▼</span>
+                        </div>
+                        <div class="p-5 hidden">
+                            <pre class="text-xs text-gray-300 whitespace-pre-wrap font-sans leading-relaxed">${b.content}</pre>
+                        </div>
+                    </div>`).join('');
+            } catch(e) { console.error(e); }
+        }
+
+        // Revenue Tracker Logic
+        async function loadRevenue() {
+            try {
+                const res = await fetch('/api/revenue');
+                const data = await res.json();
+                const entries = (data.entries || []).slice().reverse();
+
+                // Chart
+                const labels = entries.map(e => e.date);
+                const values = entries.map(e => e.mrr);
+                const ctx = document.getElementById('revenue-chart').getContext('2d');
+                if (window._revChart) window._revChart.destroy();
+                window._revChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels,
+                        datasets: [{
+                            label: 'MRR ($)',
+                            data: values,
+                            borderColor: '#dc2626',
+                            backgroundColor: 'rgba(220,38,38,0.1)',
+                            fill: true,
+                            tension: 0.4,
+                            pointBackgroundColor: '#dc2626'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            x: { ticks: { color: '#6b7280' }, grid: { color: '#1f2937' } },
+                            y: { ticks: { color: '#6b7280', callback: v => '$' + v.toLocaleString() }, grid: { color: '#1f2937' } }
+                        }
+                    }
+                });
+
+                // History list
+                const list = document.getElementById('revenue-list');
+                if (!entries.length) {
+                    list.innerHTML = '<p class="text-gray-600 text-sm">No entries yet. Log your first MRR above.</p>';
+                    return;
+                }
+                list.innerHTML = entries.map(e => `
+                    <div class="flex items-center justify-between p-3 bg-black rounded-lg border border-gray-800">
+                        <div class="flex items-center gap-3">
+                            <p class="text-xs text-gray-500 font-mono">${e.date}</p>
+                            <p class="text-xs text-gray-400">${e.note || '—'}</p>
+                        </div>
+                        <p class="text-sm font-bold text-green-400">$${Number(e.mrr).toLocaleString()}/mo</p>
+                    </div>`).join('');
+            } catch(e) { console.error(e); }
+        }
+
+        async function logRevenue() {
+            const date = document.getElementById('rev-date').value || new Date().toISOString().split('T')[0];
+            const mrr = document.getElementById('rev-mrr').value;
+            const note = document.getElementById('rev-note').value;
+            if (!mrr) return;
+            await fetch('/api/revenue', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({date, mrr: parseFloat(mrr), note})});
+            document.getElementById('rev-mrr').value = '';
+            document.getElementById('rev-note').value = '';
+            loadRevenue();
+        }
+
+        // Knowledge Base Logic
+        let kbData = {};
+        const folderIcons = { products: '<i class="fa-solid fa-box"></i>', sales: '<i class="fa-solid fa-chart-line"></i>', integrations: '<i class="fa-solid fa-link"></i>', company: '<i class="fa-solid fa-building"></i>', root: '<i class="fa-solid fa-file"></i>' };
+        const folderColors = { products: 'blue', sales: 'red', integrations: 'purple', company: 'green', root: 'gray' };
+
+        async function loadKB() {
+            try {
+                const res = await fetch('/api/kb');
+                kbData = await res.json();
+                renderKBTree(kbData);
+            } catch(e) { console.error('KB load error', e); }
+        }
+
+        function renderKBTree(data, filter='') {
+            const tree = document.getElementById('kb-tree');
+            tree.innerHTML = '';
+            for (const [folder, files] of Object.entries(data)) {
+                const filtered = files.filter(f => !filter || f.name.toLowerCase().includes(filter.toLowerCase()));
+                if (filtered.length === 0) continue;
+                const color = folderColors[folder] || 'gray';
+                const icon = folderIcons[folder] || '<i class="fa-solid fa-file"></i>';
+                const section = document.createElement('div');
+                section.innerHTML = `
+                    <p class="text-xs font-bold text-${color}-400 uppercase tracking-wider mb-2">${icon} ${folder}</p>
+                    <ul class="space-y-1 ml-2">
+                        ${filtered.map(f => `
+                            <li>
+                                <button onclick="loadKBFile('${f.path}', '${f.name}')"
+                                    class="kb-file-btn w-full text-left px-3 py-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-colors text-xs truncate"
+                                    data-path="${f.path}">
+                                    ${f.name}
+                                </button>
+                            </li>`).join('')}
+                    </ul>`;
+                tree.appendChild(section);
+            }
+        }
+
+        function filterKB() {
+            const q = document.getElementById('kb-search').value;
+            renderKBTree(kbData, q);
+        }
+
+        async function loadKBFile(path, name) {
+            // Highlight active
+            document.querySelectorAll('.kb-file-btn').forEach(b => b.classList.remove('bg-gray-700', 'text-white'));
+            const btn = document.querySelector(`[data-path="${path}"]`);
+            if (btn) { btn.classList.add('bg-gray-700', 'text-white'); }
+
+            document.getElementById('kb-header').innerHTML = `
+                <p class="text-sm font-bold text-white">${name}</p>
+                <p class="text-xs text-gray-500 font-mono">kb/${path}</p>`;
+            document.getElementById('kb-content').innerHTML = '<p class="text-gray-600">Loading...</p>';
+
+            try {
+                const res = await fetch(`/api/kb/file?path=${encodeURIComponent(path)}`);
+                const data = await res.json();
+                // Simple markdown-ish rendering
+                let html = data.content
+                    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+                    .replace(/^# (.+)$/gm, '<span class="text-xl font-bold text-white block mt-2">$1</span>')
+                    .replace(/^## (.+)$/gm, '<span class="text-base font-bold text-blue-400 block mt-4 mb-1">$1</span>')
+                    .replace(/^### (.+)$/gm, '<span class="text-sm font-bold text-gray-300 block mt-3">$1</span>')
+                    .replace(/\*\*(.+?)\*\*/g, '<strong class="text-white">$1</strong>')
+                    .replace(/`(.+?)`/g, '<code class="bg-gray-800 text-green-400 px-1 rounded text-xs">$1</code>')
+                    .replace(/^- (.+)$/gm, '<div class="flex gap-2 text-gray-300"><span class="text-gray-600">—</span><span>$1</span></div>')
+                    .replace(/^✅ (.+)$/gm, '<div class="flex gap-2"><span class="text-green-400"><i class="fa-solid fa-check"></i></span><span class="text-gray-300">$1</span></div>')
+                    .replace(/^⚠️ (.+)$/gm, '<div class="flex gap-2"><span class="text-yellow-400"><i class="fa-solid fa-triangle-exclamation"></i></span><span class="text-gray-300">$1</span></div>')
+                    .replace(/\n/g, '<br>');
+                document.getElementById('kb-content').innerHTML = html;
+            } catch(e) {
+                document.getElementById('kb-content').innerHTML = '<p class="text-red-400">Error loading file.</p>';
+            }
+        }
+
+        // Token Monitor Logic
+        async function loadTokenStats() {
+            try {
+                const res = await fetch('/api/token-stats');
+                const data = await res.json();
+
+                // Per-model cards
+                const cards = document.getElementById('token-model-cards');
+                const totals = data.totals || {};
+                const modelNames = Object.keys(totals);
+
+                if (modelNames.length === 0) {
+                    cards.innerHTML = `<div class="bg-gray-900 rounded-xl p-6 border border-gray-800 text-gray-500 text-sm">No data yet. PenPen will log stats after each session.</div>`;
+                } else {
+                    const modelColors = ['blue','purple','green','yellow','red'];
+                    cards.innerHTML = modelNames.map((model, i) => {
+                        const t = totals[model];
+                        const color = modelColors[i % modelColors.length];
+                        const shortModel = model.split('/').pop();
+                        const cacheRate = t.tokens_in > 0 ? Math.round((t.cache_hit_tokens / (t.cache_hit_tokens + t.tokens_in)) * 100) : 0;
+                        return `
+                        <div class="bg-gray-900 rounded-xl p-6 border border-${color}-900/50 hover:border-${color}-500/50 transition-colors">
+                            <div class="flex justify-between items-start mb-4">
+                                <div>
+                                    <h3 class="text-base font-bold text-white">${shortModel}</h3>
+                                    <p class="text-xs text-gray-500 font-mono">${model}</p>
+                                </div>
+                                <span class="bg-${color}-900/40 text-${color}-400 text-xs px-2 py-1 rounded font-mono">${t.session_count} session${t.session_count !== 1 ? 's' : ''}</span>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4 text-center">
+                                <div class="bg-black rounded-lg p-3 border border-gray-800">
+                                    <p class="text-lg font-bold text-white">${fmtNum(t.tokens_in + t.tokens_out)}</p>
+                                    <p class="text-xs text-gray-500">Total Tokens</p>
+                                </div>
+                                <div class="bg-black rounded-lg p-3 border border-gray-800">
+                                    <p class="text-lg font-bold text-red-400">$${t.total_cost_usd.toFixed(3)}</p>
+                                    <p class="text-xs text-gray-500">Total Cost</p>
+                                </div>
+                                <div class="bg-black rounded-lg p-3 border border-gray-800">
+                                    <p class="text-lg font-bold text-green-400">${cacheRate}%</p>
+                                    <p class="text-xs text-gray-500">Cache Hit Rate</p>
+                                </div>
+                                <div class="bg-black rounded-lg p-3 border border-gray-800">
+                                    <p class="text-lg font-bold text-blue-400">${fmtNum(t.cache_hit_tokens)}</p>
+                                    <p class="text-xs text-gray-500">Cached Tokens</p>
+                                </div>
+                            </div>
+                        </div>`;
+                    }).join('');
+                }
+
+                // Aggregate totals
+                let totalIn = 0, totalOut = 0, totalCache = 0, totalCost = 0;
+                for (const t of Object.values(totals)) {
+                    totalIn += t.tokens_in;
+                    totalOut += t.tokens_out;
+                    totalCache += t.cache_hit_tokens;
+                    totalCost += t.total_cost_usd;
+                }
+                document.getElementById('stat-total-in').innerText = fmtNum(totalIn);
+                document.getElementById('stat-total-out').innerText = fmtNum(totalOut);
+                document.getElementById('stat-cache-total').innerText = fmtNum(totalCache);
+                document.getElementById('stat-total-cost').innerText = '$' + totalCost.toFixed(3);
+
+                // Session log
+                const sessions = (data.sessions || []).slice().reverse();
+                const tbody = document.getElementById('token-session-log');
+                if (sessions.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="7" class="py-4 text-center text-gray-600">No sessions logged yet.</td></tr>`;
+                } else {
+                    tbody.innerHTML = sessions.map(s => {
+                        const contextPct = s.context_limit ? Math.round((s.context_used / s.context_limit) * 100) : '?';
+                        const shortM = (s.model || '').split('/').pop();
+                        const cacheHit = s.cache_hit_tokens || 0;
+                        return `<tr class="hover:bg-gray-800/30 transition-colors">
+                            <td class="py-3 pr-4 text-xs text-gray-400 font-mono">${s.date} ${s.time || ''}</td>
+                            <td class="py-3 pr-4 text-xs font-mono text-blue-400">${shortM}</td>
+                            <td class="py-3 pr-4 text-right text-xs">${fmtNum(s.tokens_in || 0)}</td>
+                            <td class="py-3 pr-4 text-right text-xs">${fmtNum(s.tokens_out || 0)}</td>
+                            <td class="py-3 pr-4 text-right text-xs text-green-400">${fmtNum(cacheHit)}</td>
+                            <td class="py-3 pr-4 text-right text-xs">${contextPct}%</td>
+                            <td class="py-3 text-right text-xs text-red-400">$${(s.cost_usd || 0).toFixed(3)}</td>
+                        </tr>`;
+                    }).join('');
+                }
+
+                if (data.last_updated) {
+                    document.getElementById('token-last-updated').innerText = 'Last updated: ' + new Date(data.last_updated).toLocaleString();
+                }
+
+                // Pie chart
+                const modelColorMap2 = {
+                    'claude-sonnet-4-6': '#dc2626',
+                    'claude-haiku-4': '#7c3aed',
+                    'claude-opus-4-6': '#b91c1c',
+                    'gemini-web-search': '#2563eb',
+                    'gemini-memory-search': '#60a5fa',
+                    'gemini-embedding-001': '#60a5fa',
+                    'gemini-grounding': '#2563eb',
+                };
+                const defaultColors = ['#dc2626','#2563eb','#7c3aed','#059669','#d97706','#60a5fa'];
+
+                const pieLabels = [], pieData = [], pieColors = [], pieLegend = [];
+                let grandTotal = 0;
+                Object.entries(totals).forEach(([model, t], i) => {
+                    const short = model.split('/').pop();
+                    const cost = t.total_cost_usd || 0;
+                    if (cost === 0) return;
+                    grandTotal += cost;
+                    const color = modelColorMap2[short] || defaultColors[i % defaultColors.length];
+                    pieLabels.push(short);
+                    pieData.push(cost);
+                    pieColors.push(color);
+                    pieLegend.push({ label: short, cost, color });
+                });
+
+                document.getElementById('pie-total').innerText = '$' + grandTotal.toFixed(3);
+
+                // Legend
+                const legendEl = document.getElementById('pie-legend');
+                legendEl.innerHTML = pieLegend.map(l => `
+                    <div class="flex items-center gap-3">
+                        <span class="w-3 h-3 rounded-full flex-shrink-0" style="background:${l.color}"></span>
+                        <div>
+                            <p class="text-sm text-white font-mono">${l.label}</p>
+                            <p class="text-xs text-gray-500">$${l.cost.toFixed(3)} · ${grandTotal > 0 ? Math.round((l.cost/grandTotal)*100) : 0}%</p>
+                        </div>
+                    </div>`).join('');
+
+                // Draw/update chart
+                const ctx = document.getElementById('cost-pie-chart').getContext('2d');
+                if (window._pieChart) window._pieChart.destroy();
+                window._pieChart = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: { labels: pieLabels, datasets: [{ data: pieData, backgroundColor: pieColors, borderWidth: 2, borderColor: '#111827' }] },
+                    options: {
+                        cutout: '72%',
+                        plugins: { legend: { display: false }, tooltip: {
+                            callbacks: { label: ctx => ` $${ctx.parsed.toFixed(3)}` }
+                        }},
+                        animation: { animateRotate: true, duration: 600 }
+                    }
+                });
+
+            } catch(e) {
+                console.error('Error loading token stats:', e);
+            }
+        }
+
+        function fmtNum(n) {
+            if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
+            if (n >= 1000) return (n / 1000).toFixed(1) + 'k';
+            return n.toString();
+        }
+
+        // Dashboard Logic
+        async function loadDashboard() {
+            // Timestamp
+            document.getElementById('dash-timestamp').innerText = 'Last updated: ' + new Date().toLocaleString();
+
+            // Tasks
+            try {
+                const res = await fetch('/api/tasks');
+                const data = await res.json();
+                const tasks = data.tasks || [];
+                const todo = tasks.filter(t => t.status === 'todo');
+                const ip = tasks.filter(t => t.status === 'inprogress');
+                const done = tasks.filter(t => t.status === 'done');
+
+                document.getElementById('kpi-todo').innerText = todo.length;
+                document.getElementById('kpi-inprogress').innerText = ip.length;
+                document.getElementById('kpi-done').innerText = done.length;
+
+                // Open task list
+                const taskList = document.getElementById('dash-task-list');
+                const openTasks = [...ip, ...todo];
+                if (openTasks.length === 0) {
+                    taskList.innerHTML = `<p class="text-gray-600 text-sm">All clear — no open tasks.</p>`;
+                } else {
+                    taskList.innerHTML = openTasks.map(t => `
+                        <div class="flex items-start gap-3 p-3 bg-black rounded-lg border border-gray-800">
+                            <span class="mt-0.5 w-2 h-2 rounded-full flex-shrink-0 ${t.status === 'inprogress' ? 'bg-blue-400 animate-pulse' : 'bg-red-500'}"></span>
+                            <p class="text-sm text-gray-300 leading-snug">${t.desc}</p>
+                        </div>`).join('');
+                }
+            } catch(e) { console.error('Dashboard tasks error', e); }
+
+            // Check Ollama for local agent status
+            try {
+                const ollamaRes = await fetch('http://localhost:11434/api/tags');
+                const ollamaData = await ollamaRes.json();
+                const hasLlama = ollamaData.models?.find(m => m.name.includes('llama3.2'));
+                const localStatus = hasLlama
+                    ? `<span class="w-1.5 h-1.5 rounded-full bg-green-400 inline-block"></span> <span class="text-green-400">Online · Free</span>`
+                    : `<span class="w-1.5 h-1.5 rounded-full bg-yellow-400 inline-block"></span> <span class="text-yellow-400">No model</span>`;
+                document.getElementById('dash-scout-status').innerHTML = localStatus;
+                document.getElementById('dash-scribe-status').innerHTML = localStatus;
+            } catch(e) {
+                const offlineStatus = `<span class="w-1.5 h-1.5 rounded-full bg-red-500 inline-block"></span> <span class="text-red-400">Offline</span>`;
+                document.getElementById('dash-scout-status').innerHTML = offlineStatus;
+                document.getElementById('dash-scribe-status').innerHTML = offlineStatus;
+            }
+
+            // Token stats
+            try {
+                const res = await fetch('/api/token-stats');
+                const data = await res.json();
+                const sessions = data.sessions || [];
+                const latest = sessions[sessions.length - 1];
+                const totals = data.totals || {};
+
+                // All-time cost
+                let totalCost = 0;
+                for (const t of Object.values(totals)) totalCost += t.total_cost_usd;
+                document.getElementById('kpi-cost').innerText = '$' + totalCost.toFixed(3);
+
+                if (latest) {
+                    const ctxPct = latest.context_limit ? Math.round((latest.context_used / latest.context_limit) * 100) : 0;
+                    const cacheTotal = (latest.cache_hit_tokens || 0) + (latest.tokens_in || 0);
+                    const cachePct = cacheTotal > 0 ? Math.round(((latest.cache_hit_tokens || 0) / cacheTotal) * 100) : 0;
+
+                    document.getElementById('dash-context-pct').innerText = ctxPct + '%';
+                    document.getElementById('dash-context-bar').style.width = ctxPct + '%';
+                    document.getElementById('dash-context-bar').className = `h-2 rounded-full transition-all duration-500 ${ctxPct > 80 ? 'bg-red-500' : ctxPct > 50 ? 'bg-yellow-500' : 'bg-blue-500'}`;
+
+                    document.getElementById('dash-cache-pct').innerText = cachePct + '%';
+                    document.getElementById('dash-cache-bar').style.width = cachePct + '%';
+
+                    document.getElementById('dash-tokens-in').innerText = fmtNum(latest.tokens_in || 0);
+                    document.getElementById('dash-tokens-out').innerText = fmtNum(latest.tokens_out || 0);
+                    document.getElementById('dash-cached').innerText = fmtNum(latest.cache_hit_tokens || 0);
+                    document.getElementById('dash-model').innerText = (latest.model || '').split('/').pop();
+                }
+
+                // Dash pie chart
+                const modelColorMap = {
+                    'claude-sonnet-4-6': '#dc2626',
+                    'claude-haiku-4': '#7c3aed',
+                    'claude-opus-4-6': '#b91c1c',
+                    'gemini-web-search': '#2563eb',
+                    'gemini-memory-search': '#60a5fa',
+                    'gemini-embedding-001': '#60a5fa',
+                    'gemini-grounding': '#2563eb',
+                };
+                const fallbackColors = ['#dc2626','#2563eb','#7c3aed','#059669','#d97706','#60a5fa'];
+                const dLabels=[], dData=[], dColors=[], dLegend=[];
+                let dTotal=0;
+                Object.entries(totals).forEach(([model,t],i) => {
+                    const short = model.split('/').pop();
+                    const cost = t.total_cost_usd||0;
+                    if (cost === 0) return;
+                    dTotal+=cost;
+                    const color = modelColorMap[short] || fallbackColors[i%fallbackColors.length];
+                    dLabels.push(short); dData.push(cost);
+                    dColors.push(color);
+                    dLegend.push({label:short,cost,color});
+                });
+                document.getElementById('dash-pie-total').innerText = '$'+dTotal.toFixed(2);
+                document.getElementById('dash-pie-legend').innerHTML = dLegend.map(l=>`
+                    <div class="flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background:${l.color}"></span>
+                        <div><p class="text-white font-mono">${l.label}</p><p class="text-gray-500">$${l.cost.toFixed(3)} · ${dTotal>0?Math.round((l.cost/dTotal)*100):0}%</p></div>
+                    </div>`).join('');
+                const dCtx = document.getElementById('dash-pie-chart').getContext('2d');
+                if(window._dashPie) window._dashPie.destroy();
+                window._dashPie = new Chart(dCtx,{
+                    type:'doughnut',
+                    data:{labels:dLabels,datasets:[{data:dData,backgroundColor:dColors,borderWidth:2,borderColor:'#111827'}]},
+                    options:{cutout:'70%',plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` $${c.parsed.toFixed(3)}`}}},animation:{duration:500}}
+                });
+
+            } catch(e) { console.error('Dashboard token error', e); }
+        }
+
+        // Real-time SSE updates
+        function connectSSE() {
+            const es = new EventSource('/api/events');
+
+            es.addEventListener('connected', () => {
+                console.log('[MC] SSE connected — real-time mode active');
+                logActivity('<i class="fa-solid fa-circle" style="color:green"></i> Real-time connection established.');
+                document.getElementById('dash-sse-dot').className = 'w-2 h-2 rounded-full bg-green-400 animate-pulse inline-block';
+                document.getElementById('dash-sse-indicator').innerHTML = '<span class="w-2 h-2 rounded-full bg-green-400 animate-pulse inline-block" id="dash-sse-dot"></span> Real-time';
+            });
+
+            es.addEventListener('tasks', () => {
+                fetchTasks();
+                if (document.getElementById('tab-dashboard').classList.contains('tab-active')) loadDashboard();
+                logActivity('<i class="fa-solid fa-clipboard-list"></i> Task board updated.');
+            });
+
+            es.addEventListener('tokens', () => {
+                if (document.getElementById('tab-tokens').classList.contains('tab-active')) loadTokenStats();
+                if (document.getElementById('tab-dashboard').classList.contains('tab-active')) loadDashboard();
+            });
+
+            es.addEventListener('revenue', () => {
+                if (document.getElementById('tab-revenue').classList.contains('tab-active')) loadRevenue();
+            });
+
+            es.onerror = () => {
+                console.warn('[MC] SSE lost — reconnecting in 5s...');
+                document.getElementById('dash-sse-indicator').innerHTML = '<span class="w-2 h-2 rounded-full bg-red-500 inline-block" id="dash-sse-dot"></span> Reconnecting...';
+                es.close();
+                setTimeout(connectSSE, 5000);
+            };
+        }
+
+        // Initialize
+        fetchTasks();
+        loadDashboard();
+        connectSSE();
+    </script>
 </body>
-
-</div>
 </html>
