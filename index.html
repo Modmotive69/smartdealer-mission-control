@@ -1985,10 +1985,9 @@ if(sessionStorage.getItem("mc_ok")==="1"){
         connectSSE();
     </script>
 <script>
-(function(){
-var DEMO_MODE=true;
-var _origFetch=window.fetch;
-function mockFetch(u,o){
+window._origFetch=window.fetch;
+window.DEMO_MODE=true;
+window._mockFetch=function(u,o){
   var ep=(typeof u==="string"?u:u.url||"");
   return new Promise(function(r){
     setTimeout(function(){
@@ -2044,9 +2043,9 @@ function mockFetch(u,o){
       r({ok:true,json:function(){return Promise.resolve(d);}});
     },200);
   });
-}
-window.fetch=mockFetch;
-})();
+};
+window.fetch=window._mockFetch;
+if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",function(){if(typeof loadDashboard==="function")loadDashboard();});}else{if(typeof loadDashboard==="function")loadDashboard();}
 </script>
 </body>
 </html>
