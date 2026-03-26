@@ -2078,15 +2078,14 @@ function mockFetch(url, opts) {
         ]};
       } else if (endpoint.startsWith('/api/inbox')) {
         data = { emails: [
-          {id:'1',subject:'Re: Ken Garff - RCI to Tekion Conversion',from_name:'David Lampert',from_email:'dave.lampert@dmsconnect.com',received:'2026-03-26T10:30:00Z',is_read:false,preview:'David, following up on our conversation...'},
+          {id:'1',subject:'Re: Ken Garff - RCI to Tekion Conversion',from_name:'David Lampert',from_email:'dave.lampert@dmsconnect.com',received:'2026-03-26T10:30:00Z',is_read:false,preview:'David, following up on our conversation about...'},
           {id:'2',subject:'New Contact from RobertBah - DMSbackups + MyDealerKPI',from_name:'Riley Simpson',from_email:'RileySimpson@SmartDealer.com',received:'2026-03-26T09:15:00Z',is_read:false,preview:'New inbound lead from PartSites form...'},
           {id:'3',subject:'Fwd: New Contact from Alfredodit - DMSbackups',from_name:'Riley Simpson',from_email:'RileySimpson@SmartDealer.com',received:'2026-03-26T08:45:00Z',is_read:true,preview:'Forwarding lead from DMSbackups inquiry...'},
-          {id:'4',subject:'Re: Follow up',from_name:'Nathan Smith',from_email:'nathan@smith.ai',received:'2026-03-25T16:20:00Z',is_read:true,preview:'Scott, great catching up yesterday...'},
         ]};
       } else if (endpoint.startsWith('/api/dist-lists')) {
         data = { contacts: [
           {name:'Scott Anderson',email:'scott@smartdealer.com',role:'CEO'},
-          {name:'Nathan Smith',email:'nathan@smith.ai',role:'Receptionist'},
+          
           {name:'Riley Simpson',email:'RileySimpson@SmartDealer.com',role:'COO'},
           {name:'David Lampert',email:'dave.lampert@dmsconnect.com',role:'VP Sales'},
           {name:'James Wilson',email:'james.wilson@smartdealer.com',role:'CTO'},
