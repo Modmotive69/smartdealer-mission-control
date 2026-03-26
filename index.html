@@ -2040,7 +2040,7 @@ window._mockFetch=function(u,o){
         {name:"Tom Chen",email:"tom.chen@smartdealer.com",role:"Engineering"},
         {name:"Sarah Kim",email:"sarah.kim@smartdealer.com",role:"Marketing"}
       ]};
-      r({ok:true,json:function(){return Promise.resolve(d);}});
+      else if(ep.startsWith("/api/kb"))d={products:[{name:"DMSbackups",path:"products/dmsbackups.md"},{name:"DocEvolution",path:"products/docevolution.md"},{name:"InDesign Data",path:"products/indesigndata.md"},{name:"PartSites",path:"products/partsites.md"},{name:"ENGAGE360",path:"products/engage360.md"}],integrations:[{name:"HubSpot Integration Guide",path:"integrations/hubspot-guide.md"},{name:"Smith.ai Setup",path:"integrations/smith-ai.md"},{name:"Microsoft 365 Email",path:"integrations/ms-email.md"}],sales:[{name:"Apollo.io Pull Guide",path:"sales/apollo-pull.md"},{name:"PartSites Pricing",path:"sales/partsites-pricing.md"},{name:"DMSbackups Pricing",path:"sales/dmsbackups-pricing.md"},{name:"SmartDealer One-Pager",path:"sales/one-pager.md"}],company:[{name:"About SmartDealer",path:"company/about.md"},{name:"Scott Anderson Bio",path:"company/scott-bio.md"},{name:"Product Portfolio",path:"company/portfolio.md"},{name:"OpenClaw Agent Setup",path:"company/openclaw-setup.md"}],root:[{name:"README",path:"kb/README.md"},{name:"Getting Started",path:"kb/getting-started.md"}]};
     },200);
   });
 };
