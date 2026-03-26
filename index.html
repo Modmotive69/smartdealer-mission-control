@@ -3,6 +3,64 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SmartDealer Mission Control — Access</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', -apple-system, sans-serif; background: #0B1120; color: #f3f4f6; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+  .gate-wrap { text-align: center; max-width: 400px; width: 90%; padding: 40px; background: #1e293b; border: 1px solid #334155; border-radius: 16px; }
+  .gate-wrap h1 { font-size: 20px; font-weight: 700; margin-bottom: 8px; color: white; }
+  .gate-wrap p { font-size: 13px; color: #9ca3af; margin-bottom: 28px; }
+  .gate-wrap input { width: 100%; padding: 12px 16px; background: #0B1120; border: 1px solid #334155; border-radius: 8px; color: white; font-size: 14px; outline: none; margin-bottom: 12px; }
+  .gate-wrap input:focus { border-color: #ff6b2b; }
+  .gate-wrap button { width: 100%; padding: 12px; background: #ff6b2b; color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; }
+  .gate-wrap button:hover { background: #e85a1a; }
+  .gate-wrap .error { color: #ef4444; font-size: 12px; margin-top: 10px; display: none; }
+  .main-content { display: none; }
+</style>
+</head>
+<body>
+
+<div class="gate-wrap" id="gate">
+  <h1>🔐 Mission Control</h1>
+  <p>Enter your access password to continue</p>
+  <input type="password" id="pwd" placeholder="Enter password" onkeydown="if(event.key==='Enter')checkPwd()">
+  <button onclick="checkPwd()">Access Dashboard</button>
+  <p class="error" id="err">Incorrect password. Try again.</p>
+</div>
+
+<div id="main" class="main-content"></div>
+
+<script>
+const CORRECT = 'smartdealer2026';
+const STORAGE_KEY = 'mc_access_granted';
+
+function checkPwd() {
+  const v = document.getElementById('pwd').value;
+  if (v === CORRECT) {
+    sessionStorage.setItem(STORAGE_KEY, '1');
+    document.getElementById('gate').style.display = 'none';
+    document.getElementById('main').style.display = 'block';
+    document.getElementById('main').innerHTML = document.getElementById('real-content').innerHTML;
+  } else {
+    document.getElementById('err').style.display = 'block';
+  }
+}
+
+// If already authenticated this session, skip gate
+if (sessionStorage.getItem(STORAGE_KEY) === '1') {
+  document.getElementById('gate').style.display = 'none';
+  document.getElementById('main').style.display = 'block';
+  document.getElementById('main').innerHTML = document.getElementById('real-content').innerHTML;
+}
+</script>
+
+<!-- Real content hidden until authenticated -->
+<div id="real-content" style="display:none">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SmartDealer Technologies Inc. — Automotive Software Portfolio</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -722,4 +780,6 @@ document.querySelectorAll('[data-target]').forEach(el => cObserver.observe(el));
     // This script block is a duplicate from a previous merge, removing it.
   </script>
 </body>
+
+</div>
 </html>
