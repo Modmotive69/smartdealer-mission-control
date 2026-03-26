@@ -31,8 +31,47 @@
 #mc-go:hover{background:#e85a1a}
 #mc-err{color:#ef4444;font-size:13px;margin-top:12px;display:none}
 </style>
+
+<style>
+#mc-gate{position:fixed;inset:0;z-index:99999;background:#0B1120;display:flex;align-items:center;justify-content:center}
+#mc-gate-inner{text-align:center;max-width:400px;width:90%;padding:48px 40px;background:#1e293b;border:1px solid #334155;border-radius:16px}
+#mc-gate-inner h1{font-size:24px;font-weight:800;margin-bottom:8px;color:#fff}
+#mc-gate-inner p{font-size:13px;color:#9ca3af;margin-bottom:32px}
+#mc-pwd{width:100%;padding:14px 16px;background:#0B1120;border:1px solid #334155;border-radius:8px;color:#fff;font-size:15px;outline:none;margin-bottom:12px}
+#mc-pwd:focus{border-color:#ff6b2b}
+#mc-go{width:100%;padding:14px;background:#ff6b2b;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer}
+#mc-go:hover{background:#e85a1a}
+#mc-err{color:#ef4444;font-size:13px;margin-top:12px;display:none}
+</style>
 </head>
 <body class="flex h-screen overflow-hidden">
+
+<div id="mc-gate">
+  <div id="mc-gate-inner">
+    <h1>Mission Control</h1>
+    <p>Enter your access password to continue</p>
+    <input type="password" id="mc-pwd" placeholder="Password" onkeydown="if(event.key==='\'Enter'\')mcChk()">
+    <button id="mc-go" onclick="mcChk()">Access Dashboard</button>
+    <p id="mc-err">Incorrect password.</p>
+  </div>
+</div>
+<script>
+function mcChk(){
+  var v=document.getElementById("mc-pwd").value;
+  if(v==="smartdealer2026"){
+    sessionStorage.setItem("mc_ok","1");
+    document.getElementById("mc-gate").style.display="none";
+    initDemo();
+  } else {
+    document.getElementById("mc-err").style.display="block";
+  }
+}
+if(sessionStorage.getItem("mc_ok")==="1"){
+  document.getElementById("mc-gate").style.display="none";
+  initDemo();
+}
+</script>
+
 
 <div id="mc-gate">
   <div id="mc-gate-inner">
@@ -1984,5 +2023,90 @@ if(sessionStorage.getItem("mc_ok")==="1"){
         loadDashboard();
         connectSSE();
     </script>
+
+<script>
+// ── DEMO MODE ────────────────────────────────────────────────────────────────
+const DEMO_MODE = true;
+const API_BASE = localStorage.getItem('mc_api_base') || '';
+const _originalFetch = window.fetch;
+
+function mockFetch(url, opts) {
+  const u = typeof url === 'string' ? url : url.url || '';
+  const endpoint = u.replace(API_BASE, '');
+
+  return new Promise(resolve => {
+    setTimeout(() => {
+      let data = {};
+      if (endpoint.startsWith('/api/tasks')) {
+        data = { tasks: [
+          {id:'1',desc:'Create and upload logos for EPIC and ACCESS products',status:'todo',priority:'high',created:'2026-03-24'},
+          {id:'2',desc:'Set up Smith.ai receptionist service',status:'todo',priority:'medium',created:'2026-03-24'},
+          {id:'3',desc:'Get all logins from Edgar and store in Knowledge Base',status:'todo',priority:'high',created:'2026-03-24'},
+          {id:'4',desc:'Install Tailscale on Mac Mini and Laptop',status:'done',priority:'high',created:'2026-03-20'},
+          {id:'5',desc:'Install TeamViewer on Mac Mini',status:'done',priority:'medium',created:'2026-03-20'},
+          {id:'6',desc:'Set up OpenClaw on Mac Mini',status:'done',priority:'high',created:'2026-03-16'},
+          {id:'7',desc:'Configure HubSpot integration',status:'done',priority:'high',created:'2026-03-20'},
+          {id:'8',desc:'Build Mission Control dashboard',status:'done',priority:'high',created:'2026-03-24'},
+        ]};
+      } else if (endpoint.startsWith('/api/token-stats')) {
+        data = {
+          sessions: [
+            {model:'MiniMax-M2.7',date:'2026-03-26',tokens_in:84291,tokens_out:2183,context_used:189234,context_limit:2048000,cost_usd:0.21,model_alias:'MiniMax M2.7'},
+            {model:'MiniMax-M2.7',date:'2026-03-25',tokens_in:284719,tokens_out:6721,context_used:892441,context_limit:2048000,cost_usd:0.87,model_alias:'MiniMax M2.7'},
+          ],
+          totals: {'MiniMax-M2.7':{total_cost_usd:1.08,total_tokens:371010}},
+          period_start:'2026-03-01', period_end:'2026-03-26'
+        };
+      } else if (endpoint.startsWith('/api/pipeline')) {
+        data = { deals: [
+          {id:'1',name:'Ken Garff Automotive',stage:'Closed Won',amount:'45000',modified:'2026-03-22'},
+          {id:'2',name:'Southwest Kia',stage:'Contract Review',amount:'24000',modified:'2026-03-21'},
+          {id:'3',name:'Mountain View Subaru',stage:'Demo Scheduled',amount:'36000',modified:'2026-03-20'},
+          {id:'4',name:'Seacoast Ford',stage:'Proposal Sent',amount:'18000',modified:'2026-03-19'},
+          {id:'5',name:'Riverside Hyundai',stage:'Qualified',amount:'22000',modified:'2026-03-18'},
+        ], stage_map: {'Closed Won':'Closed Won','Contract Review':'Contract Review','Demo Scheduled':'Demo Scheduled','Proposal Sent':'Proposal Sent','Qualified':'Qualified'} };
+      } else if (endpoint.startsWith('/api/revenue')) {
+        data = { entries: [
+          {date:'2026-03-01',mrr:15200,note:'DMSbackups MRR'},
+          {date:'2026-03-15',mrr:18500,note:'+ DocEvolution launch'},
+          {date:'2026-03-24',mrr:21000,note:'+ PartSites expansion'},
+        ]};
+      } else if (endpoint.startsWith('/api/scout-archive')) {
+        data = { briefs: [
+          {date:'Wed Mar 26, 2026',content:'MARKET AUTOMOTIVE\n• CDK Global recovery driving DMS backup urgency\n• EV accessory sales up 23% YoY for franchise dealers\n\nCOMPETITOR INTEL\n• RevolutionParts checkout outage Mar 22 = migration opportunity\n• SimplePart raised prices 15% in Q1\n\nAI/TOOLS\n• OpenClaw 2026.3.24 stable\n• MiniMax-M2.7 proving cost-effective vs Claude\n\nOPPORTUNITY\n• Contact SimplePart customers hit by price hike — PartSites migration pitch'},
+          {date:'Tue Mar 25, 2026',content:'MARKET AUTOMOTIVE\n• Franchise dealer F&I margins improving into Q2\n• CDK post-attack recovery creating urgency for DMS backups\n\nCOMPETITOR INTEL\n• RevolutionParts checkout outage Mar 22\n• SimplePart pricing up 15%\n\nOPPORTUNITY\n• CDK dealers seeking backup solutions — TKO offer timing'},
+        ]};
+      } else if (endpoint.startsWith('/api/inbox')) {
+        data = { emails: [
+          {id:'1',subject:'Re: Ken Garff - RCI to Tekion Conversion',from_name:'David Lampert',from_email:'dave.lampert@dmsconnect.com',received:'2026-03-26T10:30:00Z',is_read:false,preview:'David, following up on our conversation...'},
+          {id:'2',subject:'New Contact from RobertBah - DMSbackups + MyDealerKPI',from_name:'Riley Simpson',from_email:'RileySimpson@SmartDealer.com',received:'2026-03-26T09:15:00Z',is_read:false,preview:'New inbound lead from PartSites form...'},
+          {id:'3',subject:'Fwd: New Contact from Alfredodit - DMSbackups',from_name:'Riley Simpson',from_email:'RileySimpson@SmartDealer.com',received:'2026-03-26T08:45:00Z',is_read:true,preview:'Forwarding lead from DMSbackups inquiry...'},
+          {id:'4',subject:'Re: Follow up',from_name:'Nathan Smith',from_email:'nathan@smith.ai',received:'2026-03-25T16:20:00Z',is_read:true,preview:'Scott, great catching up yesterday...'},
+        ]};
+      } else if (endpoint.startsWith('/api/dist-lists')) {
+        data = { contacts: [
+          {name:'Scott Anderson',email:'scott@smartdealer.com',role:'CEO'},
+          {name:'Nathan Smith',email:'nathan@smith.ai',role:'Receptionist'},
+          {name:'Riley Simpson',email:'RileySimpson@SmartDealer.com',role:'COO'},
+          {name:'David Lampert',email:'dave.lampert@dmsconnect.com',role:'VP Sales'},
+          {name:'James Wilson',email:'james.wilson@smartdealer.com',role:'CTO'},
+          {name:'Maria Garcia',email:'maria.garcia@smartdealer.com',role:'Support'},
+          {name:'Tom Chen',email:'tom.chen@smartdealer.com',role:'Engineering'},
+          {name:'Sarah Kim',email:'sarah.kim@smartdealer.com',role:'Marketing'},
+        ]};
+      }
+      resolve({ ok: true, json: () => Promise.resolve(data) });
+    }, 150);
+  });
+}
+
+window.fetch = DEMO_MODE ? mockFetch : _originalFetch;
+
+function initDemo() {
+  // Kick off tab load for dashboard
+  if (typeof loadDashboard === 'function') loadDashboard();
+}
+</script>
+
 </body>
 </html>
