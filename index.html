@@ -20,61 +20,47 @@
         .tab-active { display: block; }
     </style>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐧</text></svg>">
-<style>
-#mc-gate{position:fixed;inset:0;z-index:99999;background:#0B1120;display:flex;align-items:center;justify-content:center}
-#mc-gate-inner{text-align:center;max-width:400px;width:90%;padding:48px 40px;background:#1e293b;border:1px solid #334155;border-radius:16px}
-#mc-gate-inner h1{font-size:24px;font-weight:800;margin-bottom:8px;color:#fff}
-#mc-gate-inner p{font-size:13px;color:#9ca3af;margin-bottom:32px}
-#mc-pwd{width:100%;padding:14px 16px;background:#0B1120;border:1px solid #334155;border-radius:8px;color:#fff;font-size:15px;outline:none;margin-bottom:12px}
-#mc-pwd:focus{border-color:#ff6b2b}
-#mc-go{width:100%;padding:14px;background:#ff6b2b;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer}
-#mc-go:hover{background:#e85a1a}
-#mc-err{color:#ef4444;font-size:13px;margin-top:12px;display:none}
-</style>
+
+
+</head>
+<body class="flex h-screen overflow-hidden">
 <style>
 #mc-gate{position:fixed;inset:0;z-index:99999;background:#0B1120;display:flex;align-items:center;justify-content:center}
 #mc-gate-inner{text-align:center;max-width:400px;width:90%;padding:48px 40px;background:#1e293b;border:1px solid #334155;border-radius:16px}
 #mc-gate-inner h1{font-size:24px;font-weight:800;margin-bottom:8px;color:#fff}
 #mc-gate-inner>p{font-size:13px;color:#9ca3af;margin-bottom:32px}
-#mc-pwd{width:100%;padding:14px 16px;background:#0B1120;border:1px solid #334155;border-radius:8px;color:#fff;font-size:15px;outline:none;margin-bottom:12px}
+#mc-pwd{width:100%;padding:14px 16px;background:#0B1120;border:2px solid #334155;border-radius:8px;color:#fff;font-size:15px;outline:none;margin-bottom:12px;box-sizing:border-box}
 #mc-pwd:focus{border-color:#ff6b2b}
-#mc-go{width:100%;padding:14px;background:#ff6b2b;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer}
+#mc-pwd.shake{animation:shake .4s ease;border-color:#ef4444}
+#mc-go{width:100%;padding:14px;background:#ff6b2b;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer;transition:background .2s}
 #mc-go:hover{background:#e85a1a}
-#mc-err{color:#ef4444;font-size:13px;margin-top:12px;display:none}
+#mc-go:active{transform:scale(.98)}
+#mc-err{color:#ef4444;font-size:13px;margin-top:12px;display:none;font-weight:500}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
 </style>
-</head>
-<body class="flex h-screen overflow-hidden">
-<div id="mc-gate">
-  <div id="mc-gate-inner">
-    <h1>Mission Control</h1>
-    <p>Enter your access password to continue</p>
-    <input type="password" id="mc-pwd" placeholder="Password">
-    <button id="mc-go" onclick="mcChk()">Access Dashboard</button>
-    <p id="mc-err">Incorrect password.</p>
-  </div>
-</div>
-<script>
-function mcChk(){var v=document.getElementById("mc-pwd").value;if(v==="smartdealer2026"){sessionStorage.setItem("mc_ok","1");document.getElementById("mc-gate").style.display="none";}else{document.getElementById("mc-err").style.display="block";}}
-if(sessionStorage.getItem("mc_ok")==="1"){document.getElementById("mc-gate").style.display="none";}
-</script>
-
 <div id="mc-gate">
   <div id="mc-gate-inner">
     <h1>🔐 Mission Control</h1>
     <p>Enter your access password to continue</p>
-    <input type="password" id="mc-pwd" placeholder="Password" onkeydown="if(event.key==='Enter')mcChk()">
+    <input type="password" id="mc-pwd" placeholder="Password" autofocus onkeydown="if(event.key==='Enter')mcChk()">
     <button id="mc-go" onclick="mcChk()">Access Dashboard</button>
-    <p id="mc-err">Incorrect password.</p>
+    <p id="mc-err">Incorrect password. Please try again.</p>
   </div>
 </div>
 <script>
 function mcChk(){
-  var v=document.getElementById("mc-pwd").value;
-  if(v==="smartdealer2026"){
+  var pwd=document.getElementById("mc-pwd");
+  var err=document.getElementById("mc-err");
+  err.style.display="none";
+  if(pwd.value==="smartdealer2026"){
     sessionStorage.setItem("mc_ok","1");
     document.getElementById("mc-gate").style.display="none";
   } else {
-    document.getElementById("mc-err").style.display="block";
+    err.style.display="block";
+    pwd.classList.add("shake");
+    setTimeout(function(){pwd.classList.remove("shake")},400);
+    pwd.value="";
+    pwd.focus();
   }
 }
 if(sessionStorage.getItem("mc_ok")==="1"){
@@ -82,8 +68,8 @@ if(sessionStorage.getItem("mc_ok")==="1"){
 }
 </script>
 
-    
-    <!-- Sidebar Navigation -->
+
+<!-- Sidebar Navigation -->
     <div class="w-64 bg-[#05080f] border-r border-gray-800 flex flex-col">
         <div class="p-6 border-b border-gray-800">
             <h1 class="text-2xl font-extrabold text-white tracking-tight">Mission Control<span class="text-red-500">.</span></h1>
