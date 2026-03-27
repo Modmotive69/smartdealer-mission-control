@@ -53,7 +53,7 @@ function mcChk(){
   var err=document.getElementById("mc-err");
   err.style.display="none";
   if(pwd.value==="smartdealer2026"){
-    sessionStorage.setItem("mc_ok","1");
+    localStorage.setItem("mc_ok","1");
     document.getElementById("mc-gate").style.display="none";
   } else {
     err.style.display="block";
@@ -63,7 +63,7 @@ function mcChk(){
     pwd.focus();
   }
 }
-if(sessionStorage.getItem("mc_ok")==="1"){
+if(localStorage.getItem("mc_ok")==="1"){
   document.getElementById("mc-gate").style.display="none";
 }
 </script>
