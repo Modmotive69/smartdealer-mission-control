@@ -1,0 +1,5 @@
+mc.log
+token_stats.json
+*.log
+.DS_Store
+__pycache__/
