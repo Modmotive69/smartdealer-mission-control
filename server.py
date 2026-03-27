@@ -251,7 +251,24 @@ def get_token_stats():
 
 @app.route('/api/token-stats', methods=['POST'])
 def post_token_stats():
-    save_json_file(TOKEN_STATS_FILE, request.json or {})
+    data = request.json or {}
+    stats = load_json_file(TOKEN_STATS_FILE)
+    stats.setdefault('sessions', []).append(data)
+    stats['last_updated'] = datetime.now().isoformat()
+    # Compute per-model totals
+    totals = {}
+    for s in stats.get('sessions', []):
+        model = s.get('model', 'unknown')
+        if model not in totals:
+            totals[model] = {'tokens_in': 0, 'tokens_out': 0, 'cache_hit_tokens': 0, 'total_cost_usd': 0, 'session_count': 0}
+        t = totals[model]
+        t['tokens_in'] += s.get('tokens_in', 0)
+        t['tokens_out'] += s.get('tokens_out', 0)
+        t['cache_hit_tokens'] += s.get('cache_hit_tokens', 0)
+        t['total_cost_usd'] += s.get('cost_usd', 0)
+        t['session_count'] += 1
+    stats['totals'] = totals
+    save_json_file(TOKEN_STATS_FILE, stats)
     return jsonify({"status": "success"})
 
 # ─── Calendar / Events (SSE) ───────────────────────────────────────────────
