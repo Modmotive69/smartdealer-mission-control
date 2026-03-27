@@ -154,11 +154,17 @@ def get_pipeline():
     if not config:
         return jsonify({"deals": [], "error": "HubSpot not configured"})
     try:
-        import hubspot
+        import requests
         token = config['portals'][0]['auth']['tokenInfo']['accessToken']
-        client = hubspot.Client.create(access_token=token)
-        deals = client.crm.deals.basic_api.get_page(limit=50)
-        return jsonify({"deals": [{"id": d.id, "properties": d.properties} for d in deals.results]})
+        headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'}
+        resp = requests.get(
+            "https://api.hubapi.com/crm/v3/objects/deals",
+            headers=headers, params={"limit": 50, "properties": "dealname,amount,dealstage,closedate"}
+        )
+        if resp.ok:
+            deals = [{"id": d['id'], "properties": d['properties']} for d in resp.json().get('results', [])]
+            return jsonify({"deals": deals})
+        return jsonify({"deals": [], "error": f"HTTP {resp.status_code}"})
     except Exception as e:
         return jsonify({"deals": [], "error": str(e)})
 
@@ -318,11 +324,17 @@ def hubspot_contacts():
     if not config:
         return jsonify({"contacts": [], "error": "HubSpot not configured"})
     try:
-        import hubspot
+        import requests
         token = config['portals'][0]['auth']['tokenInfo']['accessToken']
-        client = hubspot.Client.create(access_token=token)
-        contacts = client.crm.contacts.basic_api.get_page(limit=20)
-        return jsonify({"contacts": [{"id": c.id, "properties": c.properties} for c in contacts.results]})
+        headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'}
+        resp = requests.get(
+            "https://api.hubapi.com/crm/v3/objects/contacts",
+            headers=headers, params={"limit": 20, "properties": "email,firstname,lastname,jobtitle,company,phone"}
+        )
+        if resp.ok:
+            contacts = [{"id": c['id'], "properties": c['properties']} for c in resp.json().get('results', [])]
+            return jsonify({"contacts": contacts})
+        return jsonify({"contacts": [], "error": f"HTTP {resp.status_code}"})
     except Exception as e:
         return jsonify({"contacts": [], "error": str(e)})
 
