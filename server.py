@@ -1,4 +1,4 @@
-from flask import Flask, send_from_directory, request, jsonify, Response
+from flask import Flask, send_from_directory, request, jsonify, Response, send_file
 import json, os, subprocess, yaml
 from datetime import datetime
 
@@ -387,6 +387,99 @@ def hubspot_contacts():
         return jsonify({"contacts": [], "error": f"HTTP {resp.status_code}"})
     except Exception as e:
         return jsonify({"contacts": [], "error": str(e)})
+
+# ─── Newsletter Subscribe / Unsubscribe ───────────────────────────────────────
+
+@app.route('/subscribe', methods=['GET'])
+def subscribe_page():
+    """Serve the subscribe landing page."""
+    sub_path = os.path.join(os.path.dirname(__file__), 'subscribe.html')
+    if os.path.exists(sub_path):
+        return send_file(sub_path)
+    return "Subscribe page not found. Place subscribe.html in mission_control/ directory.", 404
+
+@app.route('/subscribe', methods=['POST'])
+def subscribe_post():
+    """Handle newsletter subscriptions → add to HubSpot."""
+    try:
+        data = request.json or {}
+        email = (data.get('email') or '').strip().lower()
+        name = (data.get('name') or '').strip()
+        
+        if not email or '@' not in email:
+            return jsonify({'success': False, 'error': 'Valid email required'})
+        
+        config = load_hubspot_config()
+        if not config:
+            return jsonify({'success': False, 'error': 'HubSpot not configured'})
+        
+        import requests as _req
+        token = config['portals'][0]['auth']['tokenInfo']['accessToken']
+        headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'}
+        
+        # Try to create contact — HubSpot returns 409 if email exists (upsert)
+        create_url = "https://api.hubapi.com/crm/v3/objects/contacts"
+        create_payload = {
+            "properties": {
+                "email": email,
+                "firstname": name.split()[0] if name else ''
+            }
+        }
+        create_resp = _req.post(create_url, headers=headers, json=create_payload)
+        
+        if create_resp.status_code == 201:
+            action = 'created'
+        elif create_resp.status_code == 409:
+            # Contact already exists — they're subscribed
+            action = 'already_subscribed'
+        else:
+            action = 'error_' + str(create_resp.status_code)
+        
+        return jsonify({'success': True, 'action': action, 'email': email, 'note': 'Added to Franchise Focus mailing list'})
+    
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/unsubscribe', methods=['GET'])
+def unsubscribe_get():
+    """Handle unsubscribes via query param ?email=xxx"""
+    email = request.args.get('email', '').strip().lower()
+    
+    unsub_path = os.path.join(os.path.dirname(__file__), 'unsubscribe.html')
+    
+    config = load_hubspot_config()
+    if config and email:
+        try:
+            import requests as _req
+            token = config['portals'][0]['auth']['tokenInfo']['accessToken']
+            headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'}
+            
+            # Find contact
+            search_url = "https://api.hubapi.com/crm/v3/objects/contacts/search"
+            search_payload = {"filterGroups":[{"filters":[{"propertyName":"email","operator":"EQ","value":email}]}]}
+            resp = _req.post(search_url, headers=headers, json=search_payload)
+            
+            if resp.ok and resp.json().get('results'):
+                contact_id = resp.json()['results'][0]['id']
+                # Mark as unsubscribed
+                update_url = f"https://api.hubapi.com/crm/v3/objects/contacts/{contact_id}"
+                _req.patch(update_url, headers=headers, json={
+                    "properties": {"notes_last_updated": datetime.now().isoformat()}
+                })
+        except:
+            pass
+    
+    # Return simple confirmation page
+    if os.path.exists(unsub_path):
+        return send_file(unsub_path)
+    
+    return f"""<!DOCTYPE html><html><head><meta charset="utf-8"><title>Unsubscribed</title></head>
+    <body style="font-family:Arial;padding:40px;text-align:center;background:#f4f4f4;">
+    <div style="background:#fff;padding:40px;border-radius:12px;max-width:400px;margin:0 auto;">
+    <h2 style="color:#2ec4b6;">You're unsubscribed.</h2>
+    <p style="color:#666;">You won't receive any more Franchise Focus emails.</p>
+    <a href="https://smartdealer.com" style="color:#4361ee;">← Back to SmartDealer</a>
+    </div></body></html>"""
 
 # ─── Start ───────────────────────────────────────────────────────────────────
 
