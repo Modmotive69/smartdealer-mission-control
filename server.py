@@ -249,6 +249,51 @@ def kb_file():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+# ─── Models ─────────────────────────────────────────────────────────────────
+
+OPENCLAW_CONFIG = '/Users/scottanderson/.openclaw/openclaw.json'
+
+@app.route('/api/models', methods=['GET'])
+def get_models():
+    config = load_json_file(OPENCLAW_CONFIG)
+    model_defaults = config.get('agents', {}).get('defaults', {}).get('model', {})
+    primary = model_defaults.get('primary', 'minimax-portal/MiniMax-M2.7')
+    fallbacks = model_defaults.get('fallbacks', [
+        'anthropic/claude-sonnet-4-6',
+        'google/gemini-2.5-flash',
+        'google/gemini-2.5-pro',
+        'anthropic/claude-opus-4-6',
+        'ollama/llama3.2:3b'
+    ])
+    chain = [primary] + fallbacks
+
+    model_meta = {
+        'minimax-portal/MiniMax-M2.7':     {'name': 'MiniMax M2.7',        'provider': 'MiniMax',   'input_cost_per_m': 0.30,  'output_cost_per_m': 1.20,  'context_k': 200,  'role': 'primary'},
+        'anthropic/claude-sonnet-4-6':      {'name': 'Claude Sonnet 4.6',   'provider': 'Anthropic', 'input_cost_per_m': 3.00,  'output_cost_per_m': 15.00, 'context_k': 200,  'role': 'fallback'},
+        'google/gemini-2.5-flash':          {'name': 'Gemini 2.5 Flash',    'provider': 'Google',    'input_cost_per_m': 0.075, 'output_cost_per_m': 0.30,  'context_k': 1000, 'role': 'fallback'},
+        'google/gemini-2.5-pro':            {'name': 'Gemini 2.5 Pro',      'provider': 'Google',    'input_cost_per_m': 1.25,  'output_cost_per_m': 10.00, 'context_k': 2000, 'role': 'fallback'},
+        'anthropic/claude-opus-4-6':        {'name': 'Claude Opus 4.6',     'provider': 'Anthropic', 'input_cost_per_m': 15.00, 'output_cost_per_m': 75.00, 'context_k': 200,  'role': 'fallback'},
+        'ollama/llama3.2:3b':               {'name': 'Ollama llama3.2:3b',  'provider': 'Ollama',    'input_cost_per_m': 0,     'output_cost_per_m': 0,     'context_k': 128,  'role': 'local'},
+    }
+
+    chain_details = []
+    for i, model_id in enumerate(chain):
+        meta = model_meta.get(model_id, {'name': model_id, 'provider': 'Unknown', 'input_cost_per_m': 0, 'output_cost_per_m': 0, 'context_k': 128, 'role': 'fallback'})
+        chain_details.append({
+            'id': model_id,
+            'position': i,
+            'is_primary': i == 0,
+            **meta
+        })
+
+    return jsonify({
+        'active_model': primary,
+        'primary': primary,
+        'fallbacks': fallbacks,
+        'chain': chain_details,
+        'updated_at': datetime.now().isoformat()
+    })
+
 # ─── Token Stats ────────────────────────────────────────────────────────────
 
 @app.route('/api/token-stats', methods=['GET'])
