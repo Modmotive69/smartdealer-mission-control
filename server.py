@@ -274,6 +274,11 @@ def post_token_stats():
         t['total_cost_usd'] += s.get('cost_usd', 0)
         t['session_count'] += 1
     stats['totals'] = totals
+    # Update grand totals
+    stats['cost_usd'] = sum(t['total_cost_usd'] for t in totals.values())
+    stats['tokens_in'] = sum(t['tokens_in'] for t in totals.values())
+    stats['tokens_out'] = sum(t['tokens_out'] for t in totals.values())
+    stats['cache_hit_tokens'] = sum(t['cache_hit_tokens'] for t in totals.values())
     save_json_file(TOKEN_STATS_FILE, stats)
     return jsonify({"status": "success"})
 
