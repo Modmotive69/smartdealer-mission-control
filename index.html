@@ -1425,6 +1425,10 @@ if(localStorage.getItem("mc_ok")==="1"){
             const activeNav = document.getElementById('nav-' + tabId);
             activeNav.classList.add('active-tab');
             activeNav.classList.remove('text-gray-400');
+
+            // Load tab content on switch
+            if (tabId === 'scout') loadScoutArchive();
+            if (tabId === 'memory') { loadMemories(); hideLongTermMemory(); }
         }
 
         // Task Board Logic - Server Backend
@@ -1832,17 +1836,6 @@ if(localStorage.getItem("mc_ok")==="1"){
 
         // Auto-load memories when tab is shown
         const memoryTab = document.getElementById('tab-memory');
-        let memoryLoaded = false;
-        const memObserver = new MutationObserver(() => {
-            if (memoryTab && memoryTab.classList.contains('tab-active') && !memoryLoaded) {
-                memoryLoaded = true;
-                loadMemories();
-            } else if (memoryTab && !memoryTab.classList.contains('tab-active')) {
-                memoryLoaded = false;
-            }
-        });
-        if (memoryTab) memObserver.observe(memoryTab, {attributes: true, attributeFilter: ['class']});
-
         async function loadTeam() {
             loadDistLists();
             // Check Ollama status
