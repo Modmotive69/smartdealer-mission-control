@@ -1834,14 +1834,14 @@ if(localStorage.getItem("mc_ok")==="1"){
         const memoryTab = document.getElementById('tab-memory');
         let memoryLoaded = false;
         const memObserver = new MutationObserver(() => {
-            if (tab_memory && tab_memory.classList.contains('tab-active') && !memoryLoaded) {
+            if (memoryTab && memoryTab.classList.contains('tab-active') && !memoryLoaded) {
                 memoryLoaded = true;
                 loadMemories();
-            } else if (!tab_memory.classList.contains('tab-active')) {
+            } else if (memoryTab && !memoryTab.classList.contains('tab-active')) {
                 memoryLoaded = false;
             }
         });
-        if (tab_memory) memObserver.observe(tab_memory, {attributes: true, attributeFilter: ['class']});
+        if (memoryTab) memObserver.observe(memoryTab, {attributes: true, attributeFilter: ['class']});
 
         async function loadTeam() {
             loadDistLists();
