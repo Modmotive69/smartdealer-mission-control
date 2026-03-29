@@ -26,7 +26,6 @@
 
 
 
-
 <style>
 #mc-gate{position:fixed;inset:0;z-index:99999;background:#0B1120;display:flex;align-items:center;justify-content:center}
 #mc-gate-inner{text-align:center;max-width:400px;width:90%;padding:48px 40px;background:#1e293b;border:1px solid #334155;border-radius:16px}
@@ -84,7 +83,7 @@ if(localStorage.getItem("mc_ok")==="1"){
                 <li><a onclick="switchTab('dashboard'); loadDashboard();" id="nav-dashboard" class="nav-btn active-tab flex items-center px-4 py-3 text-sm rounded-lg"><i class="fa-regular fa-house mr-3 w-5 text-center"></i> Dashboard</a></li>
                 <li><a onclick="switchTab('tasks')" id="nav-tasks" class="nav-btn flex items-center px-4 py-3 text-sm text-gray-400 rounded-lg"><i class="fa-regular fa-clipboard-list mr-3 w-5 text-center"></i> Task Board</a></li>
                 <li><a onclick="switchTab('projects')" id="nav-projects" class="nav-btn flex items-center px-4 py-3 text-sm text-gray-400 rounded-lg"><i class="fa-solid fa-bullseye mr-3 w-5 text-center"></i> Projects</a></li>
-                <li><a onclick="switchTab('memory')" id="nav-memory" class="nav-btn flex items-center px-4 py-3 text-sm text-gray-400 rounded-lg"><i class="fa-solid fa-brain mr-3 w-5 text-center"></i> Memory & Journals</a></li>
+                <li><a onclick="switchTab('memory'); loadMemories();" id="nav-memory" class="nav-btn flex items-center px-4 py-3 text-sm text-gray-400 rounded-lg"><i class="fa-solid fa-brain mr-3 w-5 text-center"></i> Memory & Journals</a></li>
                 <li><a onclick="switchTab('calendar')" id="nav-calendar" class="nav-btn flex items-center px-4 py-3 text-sm text-gray-400 rounded-lg"><i class="fa-regular fa-calendar mr-3 w-5 text-center"></i> Calendar & Cron</a></li>
                 <li><a onclick="switchTab('docs')" id="nav-docs" class="nav-btn flex items-center px-4 py-3 text-sm text-gray-400 rounded-lg"><i class="fa-regular fa-folder mr-3 w-5 text-center"></i> Docs & Artifacts</a></li>
 
@@ -497,7 +496,7 @@ if(localStorage.getItem("mc_ok")==="1"){
 
         <!-- MEMORY TAB -->
         <div id="tab-memory" class="tab-content max-w-6xl mx-auto">
-            <header class="mb-8">
+            <header class="mb-6">
                 <div class="flex justify-between items-start mb-4">
                     <div>
                         <h2 class="text-2xl font-bold text-white">Memory &amp; Journals</h2>
@@ -505,24 +504,13 @@ if(localStorage.getItem("mc_ok")==="1"){
                     </div>
                     <div class="flex gap-3">
                         <div class="relative">
-                            <input type="text" id="memory-search-input" placeholder="Search..." 
+                            <input type="text" id="memory-search-input" placeholder="Search memories..."
                                 class="bg-gray-900 border border-gray-700 text-gray-300 text-sm rounded-lg px-4 py-2 pl-10 w-64 focus:border-blue-500 focus:outline-none"
-                                onkeydown="if(event.key==='\''Enter'\'')searchMemories()">
+                                onkeydown="if(event.key==='Enter'){searchMemories();return false;}">
                             <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-xs"></i>
                         </div>
                         <button onclick="showLongTermMemory()" class="bg-blue-900/50 hover:bg-blue-900 text-blue-400 text-sm font-bold py-2 px-4 rounded transition-colors">Long-Term Memory</button>
                     </div>
-                </div>
-                <!-- Long-Term Banner -->
-                <div id="memory-longterm-banner" class="hidden bg-gradient-to-r from-blue-900/30 to-purple-900/30 rounded-xl p-4 border border-blue-800/50 mb-6">
-                    <div class="flex justify-between items-center mb-3">
-                        <div>
-                            <h3 class="text-blue-400 font-bold text-sm">Long-Term Memory</h3>
-                            <p class="text-xs text-gray-400 mt-1">Curated knowledge from all sessions</p>
-                        </div>
-                        <button onclick="hideLongTermMemory()" class="text-gray-500 hover:text-white text-xs">Close</button>
-                    </div>
-                    <div id="ltm-content" class="space-y-3 max-h-96 overflow-y-auto"></div>
                 </div>
                 <!-- Search Results -->
                 <div id="memory-search-results" class="hidden space-y-4 mb-6"></div>
@@ -540,99 +528,1981 @@ if(localStorage.getItem("mc_ok")==="1"){
 
             <!-- LTM Modal -->
             <div id="memory-ltm-modal" class="hidden fixed inset-0 bg-black/80 z-50 overflow-y-auto" onclick="if(event.target===this)hideLongTermMemory()">
-                <div class="bg-gray-900 rounded-xl max-w-4xl mx-auto my-8 mx-8 border border-gray-700">
-                    <div class="sticky top-0 bg-gray-900 border-b border-gray-800 px-6 py-4 flex justify-between items-center">
-                        <h3 class="text-white font-bold text-lg">Long-Term Memory</h3>
-                        <button onclick="hideLongTermMemory()" class="text-gray-500 hover:text-white text-xl">x</button>
-                    </div>
-                    <div id="ltm-modal-content" class="p-6 space-y-4 max-h-[80vh] overflow-y-auto"></div>
-                </div>
-            </div>
-        <div id="tab-memory" class="tab-content max-w-6xl mx-auto hidden">
-            <header class="mb-8">
-                <div class="flex justify-between items-start mb-4">
-                    <div>
-                        <h2 class="text-2xl font-bold text-white">Memory &amp; Journals</h2>
-                        <p class="text-sm text-gray-400 mt-1">Every conversation, organized by day. Searchable. Permanent.</p>
-                    </div>
-                    <div class="flex gap-3">
-                        <div class="relative">
-                            <input type="text" id="memory-search-input" placeholder="Search memories..." 
-                                class="bg-gray-900 border border-gray-700 text-gray-300 text-sm rounded-lg px-4 py-2 pl-10 w-64 focus:border-blue-500 focus:outline-none"
-                                onkeydown="if(event.key==='\''Enter'\''){searchMemories();return false;}">
-                            <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-xs"></i>
-                        </div>
-                        <button onclick="showLongTermMemory()" class="bg-blue-900/50 hover:bg-blue-900 text-blue-400 text-sm font-bold py-2 px-4 rounded transition-colors">Long-Term Memory</button>
-                    </div>
-                </div>
-                <div id="memory-longterm-banner" class="hidden bg-gradient-to-r from-blue-900/30 to-purple-900/30 rounded-xl p-4 border border-blue-800/50 mb-6">
-                    <div class="flex justify-between items-center mb-3">
-                        <div>
-                            <h3 class="text-blue-400 font-bold text-sm">Long-Term Memory</h3>
-                            <p class="text-xs text-gray-400 mt-1">Curated knowledge from all sessions</p>
-                        </div>
-                        <button onclick="hideLongTermMemory()" class="text-gray-500 hover:text-white text-xs">Close</button>
-                    </div>
-                    <div id="ltm-content" class="space-y-3 max-h-96 overflow-y-auto"></div>
-                </div>
-                <div id="memory-search-results" class="hidden space-y-4 mb-6"></div>
-            </header>
-            <div id="memory-day-pills" class="flex gap-2 overflow-x-auto pb-4 mb-6" style="scrollbar-width:none;"></div>
-            <div id="memory-day-content">
-                <div class="bg-gray-900 rounded-xl p-8 border border-gray-800 text-center text-gray-500">
-                    Select a day from above to view memories.
-                </div>
-            </div>
-            <div id="memory-ltm-modal" class="hidden fixed inset-0 bg-black/80 z-50 overflow-y-auto" onclick="if(event.target===this)hideLongTermMemory()">
                 <div class="bg-gray-900 rounded-xl max-w-4xl mx-auto my-8 border border-gray-700">
                     <div class="sticky top-0 bg-gray-900 border-b border-gray-800 px-6 py-4 flex justify-between items-center">
                         <h3 class="text-white font-bold text-lg">Long-Term Memory</h3>
-                        <button onclick="hideLongTermMemory()" class="text-gray-500 hover:text-white text-xl">x</button>
-                    </div>
-                    <div id="ltm-modal-content" class="p-6 space-y-4 max-h-[80vh] overflow-y-auto"></div>
-                </div>
-            </div>
-        <div id="tab-memory" class="tab-content max-w-6xl mx-auto hidden">
-            <header class="mb-8">
-                <div class="flex justify-between items-start mb-4">
-                    <div>
-                        <h2 class="text-2xl font-bold text-white">Memory &amp; Journals</h2>
-                        <p class="text-sm text-gray-400 mt-1">Every conversation, organized by day. Searchable. Permanent.</p>
-                    </div>
-                    <div class="flex gap-3">
-                        <div class="relative">
-                            <input type="text" id="memory-search-input" placeholder="Search..." 
-                                class="bg-gray-900 border border-gray-700 text-gray-300 text-sm rounded-lg px-4 py-2 pl-10 w-64 focus:border-blue-500 focus:outline-none"
-                                onkeydown="if(event.key==='\''Enter'\''){searchMemories();return false;}">
-                            <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-xs"></i>
-                        </div>
-                        <button onclick="showLongTermMemory()" class="bg-blue-900/50 hover:bg-blue-900 text-blue-400 text-sm font-bold py-2 px-4 rounded transition-colors">Long-Term Memory</button>
-                    </div>
-                </div>
-                <div id="memory-longterm-banner" class="hidden bg-gradient-to-r from-blue-900/30 to-purple-900/30 rounded-xl p-4 border border-blue-800/50 mb-6">
-                    <div class="flex justify-between items-center mb-3">
-                        <div><h3 class="text-blue-400 font-bold text-sm">Long-Term Memory</h3><p class="text-xs text-gray-400 mt-1">Curated knowledge from all sessions</p></div>
-                        <button onclick="hideLongTermMemory()" class="text-gray-500 hover:text-white text-xs">Close</button>
-                    </div>
-                    <div id="ltm-content" class="space-y-3 max-h-96 overflow-y-auto"></div>
-                </div>
-                <div id="memory-search-results" class="hidden space-y-4 mb-6"></div>
-            </header>
-            <div id="memory-day-pills" class="flex gap-2 overflow-x-auto pb-4 mb-6" style="scrollbar-width:none;"></div>
-            <div id="memory-day-content">
-                <div class="bg-gray-900 rounded-xl p-8 border border-gray-800 text-center text-gray-500">
-                    Select a day from above to view memories.
-                </div>
-            </div>
-            <div id="memory-ltm-modal" class="hidden fixed inset-0 bg-black/80 z-50 overflow-y-auto" onclick="if(event.target===this)hideLongTermMemory()">
-                <div class="bg-gray-900 rounded-xl max-w-4xl mx-auto my-8 border border-gray-700">
-                    <div class="sticky top-0 bg-gray-900 border-b border-gray-800 px-6 py-4 flex justify-between items-center">
-                        <h3 class="text-white font-bold text-lg">Long-Term Memory</h3>
-                        <button onclick="hideLongTermMemory()" class="text-gray-500 hover:text-white text-xl">x</button>
+                        <button onclick="hideLongTermMemory()" class="text-gray-500 hover:text-white text-xl">&times;</button>
                     </div>
                     <div id="ltm-modal-content" class="p-6 space-y-4 max-h-[80vh] overflow-y-auto"></div>
                 </div>
             </div>
         </div>
 
-        <!-- FOOTER -->
+        <!-- CALENDAR TAB -->
+        <div id="tab-calendar" class="tab-content max-w-5xl mx-auto">
+            <header class="mb-8">
+                <h2 class="text-2xl font-bold text-white">Calendar & Cron Jobs</h2>
+                <p class="text-sm text-gray-400 mt-1">Verify proactive scheduling and background automation.</p>
+            </header>
+            <div class="bg-gray-900 rounded-xl p-6 border border-gray-800">
+                <h3 class="text-sm font-bold text-gray-300 uppercase tracking-wider mb-4">Scheduled OpenClaw Cron Jobs</h3>
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center p-3 bg-black rounded border border-gray-800">
+                        <div>
+                            <p class="text-sm font-bold text-white">Inbox Triage (Heartbeat)</p>
+                            <p class="text-xs text-gray-500">Runs check_email.sh and filters spam.</p>
+                        </div>
+                        <span class="text-xs font-mono text-blue-400">Every 15m</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- DOCS TAB -->
+        <div id="tab-docs" class="tab-content max-w-5xl mx-auto">
+            <header class="mb-8">
+                <h2 class="text-2xl font-bold text-white">Docs & Artifacts</h2>
+                <p class="text-sm text-gray-400 mt-1">Generated copy, plans, and code snippets.</p>
+            </header>
+            <div class="bg-gray-900 rounded-xl p-6 border border-gray-800">
+                <input type="text" placeholder="Search docs (e.g., 'PartSites mockups')..." class="w-full bg-black border border-gray-700 rounded-lg px-4 py-2 text-sm text-white focus:outline-none focus:border-red-500 mb-6">
+                <div class="space-y-2">
+                    <a href="/Users/scottanderson/.openclaw/workspace/research/minisite/partsites-mockup.html" class="block p-3 bg-black rounded border border-gray-800 hover:border-gray-600">
+                        <div class="flex items-center">
+                            <span class="text-xl mr-3"><i class="fa-solid fa-globe"></i></span>
+                            <div>
+                                <p class="text-sm font-bold text-white">partsites-mockup.html</p>
+                                <p class="text-xs text-gray-500">ENVY 2.0 Landing Page / Calculator</p>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- TEAM TAB -->
+        <div id="tab-team" class="tab-content max-w-5xl mx-auto">
+            <header class="mb-8">
+                <h2 class="text-2xl font-bold text-white">Team & Sub-Agents</h2>
+                <p class="text-sm text-gray-400 mt-1">Orchestration and role delegation.</p>
+            </header>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-gray-900 rounded-xl p-6 border border-red-500/50 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-red-600 text-white text-xs px-2 py-1 rounded-bl">Lead Agent</div>
+                    <h3 class="text-lg font-bold text-white mb-1">PenPen</h3>
+                    <p class="text-xs text-gray-500 mb-4">Model: Gemini 3.1 Pro (Hybrid: Claude Opus)</p>
+                    <p class="text-sm text-gray-300">Executive AI focused on revenue generation, pipeline execution, and high-level strategy.</p>
+                </div>
+                <div class="bg-gray-900 rounded-xl p-6 border border-gray-800 border-dashed flex flex-col items-center justify-center text-center opacity-50 hover:opacity-100 transition-opacity cursor-pointer">
+                    <span class="text-2xl mb-2">+</span>
+                    <p class="text-sm font-bold text-white">Spawn Sub-Agent</p>
+                    <p class="text-xs text-gray-500">Delegate coding, research, or drafting.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- BOOKMARKS TAB -->
+        <div id="tab-bookmarks" class="tab-content max-w-5xl mx-auto">
+            <header class="mb-8">
+                <h2 class="text-2xl font-bold text-white">Bookmarks & Demo Sites</h2>
+                <p class="text-sm text-gray-400 mt-1">Quick access to live landing pages, CRM pipelines, and external tools.</p>
+            </header>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- PartSites Mockup -->
+                <a href="https://modmotive69.github.io/smartdealer-minisite/partsites-mockup.html" target="_blank" class="block bg-gray-900 rounded-xl p-6 border border-gray-800 hover:border-red-500/50 transition-colors group">
+                    <div class="flex items-center mb-4">
+                        <div class="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center mr-4 border border-red-200">
+                            <span class="text-lg">🛒</span>
+                        </div>
+                        <h3 class="text-lg font-bold text-white group-hover:text-red-500 transition-colors">PartSites 2.0</h3>
+                    </div>
+                    <p class="text-sm text-gray-400">The "Commodity Killer" landing page. $99/mo aggressive hook with savings calculator.</p>
+                    <div class="mt-4 flex items-center text-xs font-bold text-red-500">
+                        View Live Site →
+                    </div>
+                </a>
+
+                <!-- SmartDealer Minisite -->
+                <a href="https://modmotive69.github.io/smartdealer-minisite/" target="_blank" class="block bg-gray-900 rounded-xl p-6 border border-gray-800 hover:border-blue-500/50 transition-colors group">
+                    <div class="flex items-center mb-4">
+                        <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-4 border border-blue-200">
+                            <span class="text-lg"><i class="fa-solid fa-building"></i></span>
+                        </div>
+                        <h3 class="text-lg font-bold text-white group-hover:text-blue-500 transition-colors">SmartDealer Main</h3>
+                    </div>
+                    <p class="text-sm text-gray-400">The primary corporate minisite. Hero slider, product portfolio overview.</p>
+                    <div class="mt-4 flex items-center text-xs font-bold text-blue-500">
+                        View Live Site →
+                    </div>
+                </a>
+
+                <!-- HubSpot CRM -->
+                <a href="https://app.hubspot.com/deals/" target="_blank" class="block bg-gray-900 rounded-xl p-6 border border-gray-800 hover:border-orange-500/50 transition-colors group">
+                    <div class="flex items-center mb-4">
+                        <div class="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center mr-4 border border-orange-200">
+                            <span class="text-lg"><i class="fa-solid fa-chart-bar"></i></span>
+                        </div>
+                        <h3 class="text-lg font-bold text-white group-hover:text-orange-500 transition-colors">HubSpot Pipeline</h3>
+                    </div>
+                    <p class="text-sm text-gray-400">The PartSites Conquest Deal Pipeline. Where the Dark Matter Scraper drops new leads.</p>
+                    <div class="mt-4 flex items-center text-xs font-bold text-orange-500">
+                        Open CRM →
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <!-- DATABASE TAB -->
+        <div id="tab-database" class="tab-content max-w-5xl mx-auto">
+            <header class="mb-8">
+                <h2 class="text-2xl font-bold text-white">Target Database</h2>
+                <p class="text-sm text-gray-400 mt-1">Local extraction engine tracking high-value automotive targets.</p>
+            </header>
+            
+            <div class="grid grid-cols-1 gap-8">
+                
+                <!-- Apollo Subcat -->
+                <div class="bg-gray-900 rounded-xl p-6 border border-gray-800">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-sm font-bold text-blue-400 uppercase tracking-wider">Apollo Leads (Cleaned)</h3>
+                        <button class="bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs font-bold py-1 px-3 rounded transition-colors">+ Import CSV</button>
+                    </div>
+                    <div class="overflow-hidden border border-gray-800 rounded-lg">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-black text-gray-400 uppercase text-xs">
+                                <tr>
+                                    <th class="px-4 py-3 border-b border-gray-800 w-1/2">File Name</th>
+                                    <th class="px-4 py-3 border-b border-gray-800 w-1/4">Size / Records</th>
+                                    <th class="px-4 py-3 border-b border-gray-800 text-right w-1/4">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="db-apollo-list" class="divide-y divide-gray-800 bg-gray-900/50">
+                                <!-- Files injected via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Scraped Subcat -->
+                <div class="bg-gray-900 rounded-xl p-6 border border-gray-800">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-sm font-bold text-red-400 uppercase tracking-wider">Scraped Leads (Dark Matter)</h3>
+                        <button class="bg-red-600 hover:bg-red-700 text-white text-xs font-bold py-1 px-3 rounded shadow-lg shadow-red-600/20 transition-all">Run Scraper Now</button>
+                    </div>
+                    <div class="overflow-hidden border border-gray-800 rounded-lg">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-black text-gray-400 uppercase text-xs">
+                                <tr>
+                                    <th class="px-4 py-3 border-b border-gray-800 w-1/2">File Name</th>
+                                    <th class="px-4 py-3 border-b border-gray-800 w-1/4">Size / Records</th>
+                                    <th class="px-4 py-3 border-b border-gray-800 text-right w-1/4">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="db-scraped-list" class="divide-y divide-gray-800 bg-gray-900/50">
+                                <!-- Files injected via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- TEAM TAB -->
+        <div id="tab-team-agents" class="tab-content max-w-6xl mx-auto">
+            <header class="flex justify-between items-center mb-8">
+                <div>
+                    <h2 class="text-2xl font-bold text-white">Team</h2>
+                    <p class="text-sm text-gray-400 mt-1">Sub-agents, roles, and task assignments.</p>
+                </div>
+                <button onclick="loadTeam()" class="bg-gray-800 hover:bg-gray-700 text-gray-300 text-sm font-bold py-2 px-4 rounded transition-colors">↻ Refresh</button>
+            </header>
+
+            <!-- Flow Diagram -->
+            <div class="bg-gray-900 rounded-xl p-6 border border-gray-800 mb-8 overflow-x-auto">
+                <h3 class="text-sm font-bold text-gray-300 uppercase tracking-wider mb-6">Command Structure</h3>
+                <div class="flex flex-col items-center" style="min-width:700px;">
+
+                    <!-- Scott -->
+                    <div class="bg-gray-800 border border-gray-600 rounded-xl px-6 py-3 text-center mb-2">
+                        <p class="text-base font-extrabold text-white">👤 Scott Anderson</p>
+                        <p class="text-xs text-gray-500">CEO · SmartDealer</p>
+                    </div>
+                    <div class="w-px h-6 bg-red-500"></div>
+
+                    <!-- PenPen -->
+                    <div class="bg-red-950 border-2 border-red-500 rounded-xl px-6 py-3 text-center mb-2 relative">
+                        <div class="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-red-600 text-white text-xs px-2 py-0.5 rounded-full font-bold">LEAD AGENT</div>
+                        <p class="text-base font-extrabold text-white mt-1">🐧 PenPen</p>
+                        <p class="text-xs text-red-400 font-mono">claude-sonnet-4-6</p>
+                        <p class="text-xs text-gray-500 mt-1">Strategy · Decisions · Revenue</p>
+                    </div>
+
+                    <!-- Connector line to agents -->
+                    <div class="w-px h-6 bg-gray-600"></div>
+                    <div class="flex items-start gap-0 w-full justify-center">
+                        <!-- Left branch lines -->
+                        <div class="flex flex-col items-end" style="width:350px;">
+                            <div class="flex gap-8 justify-end">
+                                <!-- Scout -->
+                                <div class="flex flex-col items-center">
+                                    <div class="w-px h-6 bg-blue-500"></div>
+                                    <div class="bg-blue-950 border border-blue-500 rounded-xl p-3 text-center w-44">
+                                        <p class="text-sm font-bold text-white">🔭 Scout</p>
+                                        <p class="text-xs text-blue-400 font-mono">llama3.2:3b · local</p>
+                                        <div class="mt-2 space-y-1">
+                                            <div class="bg-blue-900/40 rounded px-2 py-0.5 text-xs text-blue-300"><i class="fa-solid fa-newspaper"></i> Daily news digest</div>
+                                            <div class="bg-blue-900/40 rounded px-2 py-0.5 text-xs text-blue-300"><i class="fa-solid fa-magnifying-glass"></i> Industry research</div>
+                                            <div class="bg-blue-900/40 rounded px-2 py-0.5 text-xs text-blue-300"><i class="fa-solid fa-lightbulb"></i> OpenClaw tips</div>
+                                        </div>
+                                        <p class="text-xs text-green-400 mt-2 font-bold">Free · Always On</p>
+                                    </div>
+                                </div>
+                                <!-- Scribe -->
+                                <div class="flex flex-col items-center">
+                                    <div class="w-px h-6 bg-green-500"></div>
+                                    <div class="bg-green-950 border border-green-500 rounded-xl p-3 text-center w-44">
+                                        <p class="text-sm font-bold text-white">✍️ Scribe</p>
+                                        <p class="text-xs text-green-400 font-mono">llama3.2:3b · local</p>
+                                        <div class="mt-2 space-y-1">
+                                            <div class="bg-green-900/40 rounded px-2 py-0.5 text-xs text-green-300"><i class="fa-solid fa-envelope"></i> Email drafts</div>
+                                            <div class="bg-green-900/40 rounded px-2 py-0.5 text-xs text-green-300"><i class="fa-solid fa-file-pen"></i> Summaries</div>
+                                            <div class="bg-green-900/40 rounded px-2 py-0.5 text-xs text-green-300"><i class="fa-solid fa-file"></i> Routine writing</div>
+                                        </div>
+                                        <p class="text-xs text-green-400 mt-2 font-bold">Free · Always On</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Center divider -->
+                        <div class="w-px bg-gray-700 mx-4" style="height:140px;"></div>
+
+                        <!-- Right branch -->
+                        <div class="flex flex-col items-start" style="width:350px;">
+                            <div class="flex gap-8 justify-start">
+                                <!-- Sentry -->
+                                <div class="flex flex-col items-center">
+                                    <div class="w-px h-6 bg-purple-500"></div>
+                                    <div class="bg-purple-950 border border-purple-500 rounded-xl p-3 text-center w-44">
+                                        <p class="text-sm font-bold text-white"><i class="fa-solid fa-shield-halved"></i> Sentry</p>
+                                        <p class="text-xs text-purple-400 font-mono">claude-haiku-4 · api</p>
+                                        <div class="mt-2 space-y-1">
+                                            <div class="bg-purple-900/40 rounded px-2 py-0.5 text-xs text-purple-300">💓 Heartbeats</div>
+                                            <div class="bg-purple-900/40 rounded px-2 py-0.5 text-xs text-purple-300"><i class="fa-regular fa-inbox"></i> Email triage</div>
+                                            <div class="bg-purple-900/40 rounded px-2 py-0.5 text-xs text-purple-300"><i class="fa-solid fa-alarm-clock"></i> Cron monitoring</div>
+                                        </div>
+                                        <p class="text-xs text-gray-500 mt-2">~$0.0002/run</p>
+                                    </div>
+                                </div>
+                                <!-- Closer -->
+                                <div class="flex flex-col items-center">
+                                    <div class="w-px h-6 bg-orange-500"></div>
+                                    <div class="bg-orange-950 border border-orange-500 rounded-xl p-3 text-center w-44">
+                                        <p class="text-sm font-bold text-white"><i class="fa-solid fa-bullseye"></i> Closer</p>
+                                        <p class="text-xs text-orange-400 font-mono">claude-haiku-4 · api</p>
+                                        <div class="mt-2 space-y-1">
+                                            <div class="bg-orange-900/40 rounded px-2 py-0.5 text-xs text-orange-300">🏷️ Lead qualify</div>
+                                            <div class="bg-orange-900/40 rounded px-2 py-0.5 text-xs text-orange-300"><i class="fa-solid fa-chart-bar"></i> HubSpot updates</div>
+                                            <div class="bg-orange-900/40 rounded px-2 py-0.5 text-xs text-orange-300"><i class="fa-solid fa-rocket"></i> Apollo pipeline</div>
+                                        </div>
+                                        <p class="text-xs text-gray-500 mt-2">~$0.0002/run</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Legend -->
+                    <div class="flex gap-6 mt-8 text-xs text-gray-500">
+                        <span class="flex items-center gap-1"><span class="w-3 h-px bg-green-400 inline-block"></span> Free (local)</span>
+                        <span class="flex items-center gap-1"><span class="w-3 h-px bg-purple-400 inline-block"></span> Haiku (API ~free)</span>
+                        <span class="flex items-center gap-1"><span class="w-3 h-px bg-red-500 inline-block"></span> Sonnet (API)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Agent Roster -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mb-8" id="team-roster">
+
+                <!-- PenPen -->
+                <div class="bg-gray-900 rounded-xl p-5 border border-red-500/50 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 bg-red-600 text-white text-xs px-2 py-1 rounded-bl font-bold">Lead</div>
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-12 h-12 rounded-full bg-red-600 flex items-center justify-center text-2xl">🐧</div>
+                        <div>
+                            <h3 class="text-base font-bold text-white">PenPen</h3>
+                            <p class="text-xs text-gray-500 font-mono">anthropic/claude-sonnet-4-6</p>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-400 mb-3">Strategy, revenue decisions, complex reasoning, Scott's direct chat.</p>
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="flex items-center gap-1 text-green-400"><span class="w-1.5 h-1.5 rounded-full bg-green-400 inline-block"></span> Online · API</span>
+                        <span class="text-gray-600">~$0.003/msg</span>
+                    </div>
+                </div>
+
+                <!-- Scout -->
+                <div class="bg-gray-900 rounded-xl p-5 border border-blue-900/50 hover:border-blue-500/50 transition-colors" id="agent-scout">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-12 h-12 rounded-full bg-blue-900 flex items-center justify-center text-2xl">🔭</div>
+                        <div>
+                            <h3 class="text-base font-bold text-white">Scout</h3>
+                            <p class="text-xs text-gray-500 font-mono" id="scout-model">llama3.2:3b (local)</p>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-400 mb-3">Industry news, OpenClaw tips, web research, daily digests.</p>
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="flex items-center gap-1" id="scout-status"><span class="w-1.5 h-1.5 rounded-full bg-yellow-400 inline-block"></span> <span class="text-yellow-400">Checking...</span></span>
+                        <span class="text-green-400 font-bold">Free · Local</span>
+                    </div>
+                </div>
+
+                <!-- Sentry -->
+                <div class="bg-gray-900 rounded-xl p-5 border border-purple-900/50 hover:border-purple-500/50 transition-colors">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-12 h-12 rounded-full bg-purple-900 flex items-center justify-center text-2xl"><i class="fa-solid fa-shield-halved"></i></div>
+                        <div>
+                            <h3 class="text-base font-bold text-white">Sentry</h3>
+                            <p class="text-xs text-gray-500 font-mono">anthropic/claude-haiku-4</p>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-400 mb-3">Heartbeats, email triage, task monitoring, routine alerts.</p>
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="flex items-center gap-1 text-green-400"><span class="w-1.5 h-1.5 rounded-full bg-green-400 inline-block"></span> Online · API</span>
+                        <span class="text-gray-600">~$0.0002/msg</span>
+                    </div>
+                </div>
+
+                <!-- Scribe -->
+                <div class="bg-gray-900 rounded-xl p-5 border border-green-900/50 hover:border-green-500/50 transition-colors">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-12 h-12 rounded-full bg-green-900 flex items-center justify-center text-2xl">✍️</div>
+                        <div>
+                            <h3 class="text-base font-bold text-white">Scribe</h3>
+                            <p class="text-xs text-gray-500 font-mono">llama3.2:3b (local)</p>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-400 mb-3">Email drafts, summaries, content generation, routine writing tasks.</p>
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="flex items-center gap-1" id="scribe-status"><span class="w-1.5 h-1.5 rounded-full bg-yellow-400 inline-block"></span> <span class="text-yellow-400">Checking...</span></span>
+                        <span class="text-green-400 font-bold">Free · Local</span>
+                    </div>
+                </div>
+
+                <!-- Closer -->
+                <div class="bg-gray-900 rounded-xl p-5 border border-orange-900/50 hover:border-orange-500/50 transition-colors">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-12 h-12 rounded-full bg-orange-900 flex items-center justify-center text-2xl"><i class="fa-solid fa-bullseye"></i></div>
+                        <div>
+                            <h3 class="text-base font-bold text-white">Closer</h3>
+                            <p class="text-xs text-gray-500 font-mono">anthropic/claude-haiku-4</p>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-400 mb-3">Lead qualification, HubSpot updates, Apollo pipeline execution.</p>
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="flex items-center gap-1 text-green-400"><span class="w-1.5 h-1.5 rounded-full bg-green-400 inline-block"></span> Online · API</span>
+                        <span class="text-gray-600">~$0.0002/msg</span>
+                    </div>
+                </div>
+
+                <!-- Add Agent -->
+                <div class="bg-gray-900 rounded-xl p-5 border border-gray-800 border-dashed flex flex-col items-center justify-center text-center opacity-50 hover:opacity-100 transition-opacity cursor-pointer" onclick="alert('Tell PenPen to add a new agent to the team.')">
+                    <span class="text-3xl mb-2">+</span>
+                    <p class="text-sm font-bold text-white">Add Agent</p>
+                    <p class="text-xs text-gray-500 mt-1">Tell PenPen to spawn a new team member</p>
+                </div>
+
+            </div>
+
+            <!-- Assign Task to Agent -->
+            <div class="bg-gray-900 rounded-xl p-6 border border-gray-800 mb-6">
+                <h3 class="text-sm font-bold text-gray-300 uppercase tracking-wider mb-4">Assign Task to Agent</h3>
+                <div class="flex gap-3">
+                    <select id="assign-agent" class="bg-black border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-red-500">
+                        <option value="PenPen">PenPen (Sonnet)</option>
+                        <option value="Scout">Scout (Local)</option>
+                        <option value="Sentry">Sentry (Haiku)</option>
+                        <option value="Scribe">Scribe (Local)</option>
+                        <option value="Closer">Closer (Haiku)</option>
+                    </select>
+                    <input id="assign-task" type="text" placeholder="Describe the task..." class="flex-1 bg-black border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-red-500">
+                    <button onclick="assignTask()" class="bg-red-600 hover:bg-red-700 text-white text-sm font-bold py-2 px-5 rounded shadow-lg transition-all">Assign</button>
+                </div>
+            </div>
+
+            <!-- Distribution Lists -->
+            <div class="bg-gray-900 rounded-xl p-6 border border-gray-800 mb-6">
+                <h3 class="text-sm font-bold text-gray-300 uppercase tracking-wider mb-5"><i class="fa-solid fa-envelope"></i> Distribution Lists</h3>
+                <div id="dist-lists-container" class="space-y-6"></div>
+            </div>
+
+            <!-- Ollama Status -->
+            <div class="bg-gray-900 rounded-xl p-6 border border-gray-800">
+                <h3 class="text-sm font-bold text-gray-300 uppercase tracking-wider mb-4"><i class="fa-solid fa-desktop"></i> Local LLM Status (Ollama)</h3>
+                <div id="ollama-status" class="text-sm text-gray-400">Checking...</div>
+            </div>
+        </div>
+
+        <!-- INBOX TAB -->
+        <div id="tab-inbox" class="tab-content max-w-4xl mx-auto">
+            <header class="flex justify-between items-center mb-8">
+                <div><h2 class="text-2xl font-bold text-white">Inbox</h2><p class="text-sm text-gray-400 mt-1">Latest emails — spam filtered.</p></div>
+                <button onclick="loadInbox()" class="bg-gray-800 hover:bg-gray-700 text-gray-300 text-sm font-bold py-2 px-4 rounded transition-colors">↻ Refresh</button>
+            </header>
+            <div id="inbox-list" class="space-y-3"><p class="text-gray-600 text-sm">Loading...</p></div>
+        </div>
+
+        <!-- PIPELINE TAB -->
+        <div id="tab-pipeline" class="tab-content max-w-6xl mx-auto">
+            <header class="flex justify-between items-center mb-8">
+                <div><h2 class="text-2xl font-bold text-white">Pipeline</h2><p class="text-sm text-gray-400 mt-1">HubSpot PartSites Conquest — live deal feed.</p></div>
+                <div class="flex gap-3">
+                    <button onclick="loadPipeline()" class="bg-gray-800 hover:bg-gray-700 text-gray-300 text-sm font-bold py-2 px-4 rounded transition-colors">↻ Refresh</button>
+                    <a href="https://app.hubspot.com/deals/" target="_blank" class="bg-orange-600 hover:bg-orange-700 text-white text-sm font-bold py-2 px-4 rounded transition-colors">Open HubSpot ↗</a>
+                </div>
+            </header>
+
+            <!-- Lead Flow Visual -->
+            <div class="bg-gray-900 rounded-xl border border-gray-800 p-6 mb-6 overflow-x-auto">
+                <h3 class="text-sm font-bold text-gray-300 uppercase tracking-wider mb-5">Lead Intelligence Flow</h3>
+                <div style="min-width:700px">
+                    <div style="display:flex;align-items:center;gap:0;justify-content:flex-start">
+                        <!-- Apollo -->
+                        <div style="background:#1a1a2e;border:1px solid #6366f1;border-radius:12px;padding:14px 18px;text-align:center;min-width:100px">
+                            <div style="font-size:20px;margin-bottom:4px">🔍</div>
+                            <div style="color:#818cf8;font-size:12px;font-weight:700">Apollo.io</div>
+                            <div style="color:#6b7280;font-size:10px">Lead Source</div>
+                        </div>
+                        <!-- Arrow -->
+                        <div style="display:flex;align-items:center;padding:0 4px">
+                            <svg width="32" height="16" viewBox="0 0 32 16"><path d="M0 8h24M20 4l8 4-8 4" stroke="#4b5563" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>
+                        </div>
+                        <!-- Export -->
+                        <div style="background:#1a1a2e;border:1px solid #4b5563;border-radius:12px;padding:14px 18px;text-align:center;min-width:100px">
+                            <div style="font-size:20px;margin-bottom:4px">📤</div>
+                            <div style="color:#e5e7eb;font-size:12px;font-weight:700">Export CSV</div>
+                            <div style="color:#6b7280;font-size:10px">Data Out</div>
+                        </div>
+                        <!-- Arrow -->
+                        <div style="display:flex;align-items:center;padding:0 4px">
+                            <svg width="32" height="16" viewBox="0 0 32 16"><path d="M0 8h24M20 4l8 4-8 4" stroke="#4b5563" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>
+                        </div>
+                        <!-- Cleansing -->
+                        <div style="background:#1a1a2e;border:1px solid #f59e0b;border-radius:12px;padding:14px 18px;text-align:center;min-width:100px">
+                            <div style="font-size:20px;margin-bottom:4px">🧹</div>
+                            <div style="color:#fbbf24;font-size:12px;font-weight:700">Lead Cleansing</div>
+                            <div style="color:#6b7280;font-size:10px">Filter unqualified</div>
+                        </div>
+                        <!-- Arrow -->
+                        <div style="display:flex;align-items:center;padding:0 4px">
+                            <svg width="32" height="16" viewBox="0 0 32 16"><path d="M0 8h24M20 4l8 4-8 4" stroke="#4b5563" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>
+                        </div>
+                        <!-- HubSpot -->
+                        <div style="background:#1a1a2e;border:1px solid #f97316;border-radius:12px;padding:14px 18px;text-align:center;min-width:100px">
+                            <div style="font-size:20px;margin-bottom:4px">💛</div>
+                            <div style="color:#fb923c;font-size:12px;font-weight:700">HubSpot</div>
+                            <div style="color:#6b7280;font-size:10px">CRM / Deals</div>
+                        </div>
+                    </div>
+
+                    <!-- Labels -->
+                    <div style="display:flex;justify-content:space-between;margin-top:16px;padding:0 4px">
+                        <div style="display:flex;gap:12px;flex-wrap:wrap">
+                            <span style="display:flex;align-items:center;gap:4px;font-size:10px;color:#6b7280"><span style="width:8px;height:8px;background:#6366f1;border-radius:50%;display:inline-block"></span> Apollo (source)</span>
+                            <span style="display:flex;align-items:center;gap:4px;font-size:10px;color:#6b7280"><span style="width:8px;height:8px;background:#fbbf24;border-radius:50%;display:inline-block"></span> Cleansing (filter)</span>
+                            <span style="display:flex;align-items:center;gap:4px;font-size:10px;color:#6b7280"><span style="width:8px;height:8px;background:#f97316;border-radius:50%;display:inline-block"></span> HubSpot (CRM)</span>
+                        </div>
+                        <a href="https://app.hubspot.com/deals/" target="_blank" style="font-size:10px;color:#6366f1;text-decoration:none">Manage in HubSpot →</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats row -->
+            <div class="grid grid-cols-3 gap-4 mb-6">
+                <div class="bg-gray-900 rounded-xl p-4 border border-gray-800 text-center">
+                    <p class="text-2xl font-extrabold text-white" id="pipe-total-deals">—</p>
+                    <p class="text-xs text-gray-500 mt-1">Total Deals</p>
+                </div>
+                <div class="bg-gray-900 rounded-xl p-4 border border-gray-800 text-center">
+                    <p class="text-2xl font-extrabold text-green-400" id="pipe-total-value">—</p>
+                    <p class="text-xs text-gray-500 mt-1">Pipeline Value</p>
+                </div>
+                <div class="bg-gray-900 rounded-xl p-4 border border-gray-800 text-center">
+                    <p class="text-2xl font-extrabold text-blue-400" id="pipe-stages">—</p>
+                    <p class="text-xs text-gray-500 mt-1">Active Stages</p>
+                </div>
+            </div>
+
+            <!-- Deal board by stage -->
+            <div id="pipeline-board" class="space-y-4">
+                <p class="text-gray-600 text-sm">Loading pipeline...</p>
+            </div>
+        </div>
+
+        <!-- SCOUT ARCHIVE TAB -->
+        <div id="tab-scout-archive" class="tab-content max-w-4xl mx-auto">
+            <header class="flex justify-between items-center mb-8">
+                <div><h2 class="text-2xl font-bold text-white">Scout Archive</h2><p class="text-sm text-gray-400 mt-1">Past daily research briefs.</p></div>
+                <button onclick="loadScoutArchive()" class="bg-gray-800 hover:bg-gray-700 text-gray-300 text-sm font-bold py-2 px-4 rounded transition-colors">↻ Refresh</button>
+            </header>
+            <div id="scout-archive-list" class="space-y-4"><p class="text-gray-600 text-sm">No briefs archived yet — Scout runs daily at 8AM.</p></div>
+        </div>
+
+        <!-- REVENUE TAB -->
+        <div id="tab-revenue" class="tab-content max-w-4xl mx-auto">
+            <header class="flex justify-between items-center mb-8">
+                <div><h2 class="text-2xl font-bold text-white">Revenue Tracker</h2><p class="text-sm text-gray-400 mt-1">Log MRR milestones and track growth.</p></div>
+            </header>
+            <!-- Log entry -->
+            <div class="bg-gray-900 rounded-xl p-6 border border-gray-800 mb-6">
+                <h3 class="text-sm font-bold text-gray-300 uppercase tracking-wider mb-4">Log MRR Entry</h3>
+                <div class="flex gap-3">
+                    <input id="rev-date" type="date" class="bg-black border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-red-500">
+                    <input id="rev-mrr" type="number" placeholder="MRR ($)" class="flex-1 bg-black border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-red-500">
+                    <input id="rev-note" type="text" placeholder="Note (optional)" class="flex-1 bg-black border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-red-500">
+                    <button onclick="logRevenue()" class="bg-red-600 hover:bg-red-700 text-white text-sm font-bold py-2 px-5 rounded transition-all">+ Log</button>
+                </div>
+            </div>
+            <!-- Chart -->
+            <div class="bg-gray-900 rounded-xl p-6 border border-gray-800 mb-6">
+                <h3 class="text-sm font-bold text-gray-300 uppercase tracking-wider mb-4">MRR Growth</h3>
+                <canvas id="revenue-chart" height="120"></canvas>
+            </div>
+            <!-- History -->
+            <div class="bg-gray-900 rounded-xl p-6 border border-gray-800">
+                <h3 class="text-sm font-bold text-gray-300 uppercase tracking-wider mb-4">History</h3>
+                <div id="revenue-list" class="space-y-2"></div>
+            </div>
+        </div>
+
+        <!-- KNOWLEDGE BASE TAB -->
+        <div id="tab-kb" class="tab-content max-w-6xl mx-auto">
+            <header class="flex justify-between items-center mb-8">
+                <div>
+                    <h2 class="text-2xl font-bold text-white">Knowledge Base</h2>
+                    <p class="text-sm text-gray-400 mt-1">Products, sales scripts, integrations, and company context.</p>
+                </div>
+                <button onclick="loadKB()" class="bg-gray-800 hover:bg-gray-700 text-gray-300 text-sm font-bold py-2 px-4 rounded transition-colors">↻ Refresh</button>
+            </header>
+
+            <div class="flex gap-6" style="min-height:600px;">
+                <!-- Sidebar: file tree -->
+                <div class="w-64 flex-shrink-0">
+                    <input id="kb-search" type="text" placeholder="Search files..." oninput="filterKB()" class="w-full bg-black border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-red-500 mb-4">
+                    <div id="kb-tree" class="space-y-4 text-sm"></div>
+                </div>
+
+                <!-- Content viewer -->
+                <div class="flex-1 bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">
+                    <div id="kb-header" class="px-6 py-4 border-b border-gray-800 flex justify-between items-center">
+                        <p class="text-sm text-gray-500">Select a file to view</p>
+                    </div>
+                    <div id="kb-content" class="p-6 overflow-y-auto font-mono text-sm text-gray-300 whitespace-pre-wrap leading-relaxed" style="max-height:600px;">
+                        <p class="text-gray-600">← Select a file from the list</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TOKEN MONITOR TAB -->
+        <div id="tab-tokens" class="tab-content max-w-5xl mx-auto">
+            <header class="flex justify-between items-center mb-8">
+                <div>
+                    <h2 class="text-2xl font-bold text-white">Token Monitor</h2>
+                    <p class="text-sm text-gray-400 mt-1">Per-model usage, cost, and cache efficiency across all sessions.</p>
+                </div>
+                <button onclick="loadTokenStats()" class="bg-gray-800 hover:bg-gray-700 text-gray-300 text-sm font-bold py-2 px-5 rounded transition-colors">↻ Refresh</button>
+            </header>
+
+            <!-- Per-Model Summary Cards -->
+            <div id="token-model-cards" class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div class="bg-gray-900 rounded-xl p-6 border border-gray-800 flex items-center justify-center text-gray-600 text-sm">Loading...</div>
+            </div>
+
+            <!-- Aggregate Stats Bar -->
+            <div class="bg-gray-900 rounded-xl p-6 border border-gray-800 mb-8">
+                <h3 class="text-sm font-bold text-gray-300 uppercase tracking-wider mb-4">All-Time Totals</h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="text-center">
+                        <p class="text-2xl font-bold text-white" id="stat-total-in">—</p>
+                        <p class="text-xs text-gray-500 mt-1">Tokens In</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-2xl font-bold text-white" id="stat-total-out">—</p>
+                        <p class="text-xs text-gray-500 mt-1">Tokens Out</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-2xl font-bold text-green-400" id="stat-cache-total">—</p>
+                        <p class="text-xs text-gray-500 mt-1">Cache Hits</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-2xl font-bold text-red-400" id="stat-total-cost">—</p>
+                        <p class="text-xs text-gray-500 mt-1">Total Cost</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cost Breakdown Pie Chart -->
+            <div class="bg-gray-900 rounded-xl p-6 border border-gray-800 mb-8">
+                <h3 class="text-sm font-bold text-gray-300 uppercase tracking-wider mb-6">Cost Breakdown by Model</h3>
+                <div class="flex items-center justify-center gap-12">
+                    <div style="width:220px;height:220px;position:relative;">
+                        <canvas id="cost-pie-chart"></canvas>
+                        <div id="pie-center-label" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none;">
+                            <p class="text-xl font-bold text-white" id="pie-total">—</p>
+                            <p class="text-xs text-gray-500">total</p>
+                        </div>
+                    </div>
+                    <div id="pie-legend" class="space-y-3"></div>
+                </div>
+            </div>
+
+            <!-- Session History Table -->
+            <div class="bg-gray-900 rounded-xl p-6 border border-gray-800">
+                <h3 class="text-sm font-bold text-gray-300 uppercase tracking-wider mb-4">Session Log</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left">
+                        <thead class="text-xs text-gray-400 uppercase border-b border-gray-800">
+                            <tr>
+                                <th class="pb-3 pr-4">Date / Time</th>
+                                <th class="pb-3 pr-4">Model</th>
+                                <th class="pb-3 pr-4 text-right">In</th>
+                                <th class="pb-3 pr-4 text-right">Out</th>
+                                <th class="pb-3 pr-4 text-right">Cache Hit</th>
+                                <th class="pb-3 pr-4 text-right">Context %</th>
+                                <th class="pb-3 text-right">Cost</th>
+                            </tr>
+                        </thead>
+                        <tbody id="token-session-log" class="divide-y divide-gray-800 text-gray-300">
+                            <tr><td colspan="7" class="py-4 text-center text-gray-600">No sessions logged yet.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="text-xs text-gray-600 mt-4" id="token-last-updated">Last updated: —</p>
+            </div>
+        </div>
+
+        <!-- MODELS TAB -->
+        <div id="tab-models" class="tab-content max-w-5xl mx-auto">
+            <header class="flex justify-between items-center mb-8">
+                <div>
+                    <h2 class="text-2xl font-bold text-white">Model Hierarchy</h2>
+                    <p class="text-sm text-gray-400 mt-1">Fallback chain, cost comparison, and best practices.</p>
+                </div>
+                <button onclick="loadModels()" class="bg-gray-800 hover:bg-gray-700 text-gray-300 text-sm font-bold py-2 px-4 rounded transition-colors">↻ Refresh</button>
+            </header>
+
+            <!-- Fallback Chain -->
+            <div class="bg-gray-900 rounded-xl p-6 border border-gray-800 mb-6">
+                <h3 class="text-sm font-bold text-gray-300 uppercase tracking-wider mb-6"><i class="fa-solid fa-sitemap mr-2"></i>Fallback Chain</h3>
+                <div class="flex flex-col sm:flex-row items-center gap-2 flex-wrap" id="models-chain">
+                    <!-- Populated by JS -->
+                    <div class="text-gray-600 text-sm">Loading...</div>
+                </div>
+                <p class="text-xs text-gray-600 mt-4">OpenClaw tries models left-to-right. If the primary fails, it falls back automatically.</p>
+            </div>
+
+            <!-- Cost Comparison Chart -->
+            <div class="bg-gray-900 rounded-xl p-6 border border-gray-800 mb-6">
+                <h3 class="text-sm font-bold text-gray-300 uppercase tracking-wider mb-6"><i class="fa-solid fa-chart-bar mr-2"></i>Cost Comparison (per 1M input tokens)</h3>
+                <div class="space-y-3" id="models-cost-bars">
+                    <!-- Populated by JS -->
+                </div>
+                <div class="mt-4 pt-4 border-t border-gray-800 flex items-center gap-6 text-xs text-gray-500">
+                    <span class="flex items-center gap-2"><span class="w-3 h-3 rounded bg-green-500 inline-block"></span> Free / Local</span>
+                    <span class="flex items-center gap-2"><span class="w-3 h-3 rounded bg-orange-500 inline-block"></span> Budget (&lt;$1/M)</span>
+                    <span class="flex items-center gap-2"><span class="w-3 h-3 rounded bg-blue-500 inline-block"></span> Mid-tier ($1–$5/M)</span>
+                    <span class="flex items-center gap-2"><span class="w-3 h-3 rounded bg-red-500 inline-block"></span> Premium (&gt;$5/M)</span>
+                </div>
+            </div>
+
+            <!-- Best Practice Guidance -->
+            <div class="bg-gray-900 rounded-xl p-6 border border-gray-800 mb-6">
+                <h3 class="text-sm font-bold text-gray-300 uppercase tracking-wider mb-5"><i class="fa-solid fa-lightbulb mr-2 text-yellow-400"></i>Best Practice Guidance</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="models-guidance">
+                    <div class="bg-orange-950/40 border border-orange-700/50 rounded-xl p-5">
+                        <div class="flex items-center gap-3 mb-3">
+                            <div class="w-10 h-10 rounded-lg bg-orange-900/60 flex items-center justify-center text-xl">⚡</div>
+                            <div>
+                                <p class="text-sm font-bold text-orange-300">MiniMax M2.7</p>
+                                <p class="text-xs text-gray-500 font-mono">$0.30/M input</p>
+                            </div>
+                        </div>
+                        <p class="text-sm text-gray-300 leading-relaxed">Use for <strong class="text-white">daily operations</strong> — heartbeats, routine tasks, drafts, and background work. Best value for high-volume use.</p>
+                        <div class="mt-3 flex flex-wrap gap-1">
+                            <span class="bg-orange-900/40 text-orange-300 text-xs px-2 py-0.5 rounded">Heartbeats</span>
+                            <span class="bg-orange-900/40 text-orange-300 text-xs px-2 py-0.5 rounded">Email triage</span>
+                            <span class="bg-orange-900/40 text-orange-300 text-xs px-2 py-0.5 rounded">Research</span>
+                            <span class="bg-orange-900/40 text-orange-300 text-xs px-2 py-0.5 rounded">Summaries</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-blue-950/40 border border-blue-700/50 rounded-xl p-5">
+                        <div class="flex items-center gap-3 mb-3">
+                            <div class="w-10 h-10 rounded-lg bg-blue-900/60 flex items-center justify-center text-xl">🧠</div>
+                            <div>
+                                <p class="text-sm font-bold text-blue-300">Claude Sonnet</p>
+                                <p class="text-xs text-gray-500 font-mono">$3/M input</p>
+                            </div>
+                        </div>
+                        <p class="text-sm text-gray-300 leading-relaxed">Use for <strong class="text-white">complex tasks</strong> — strategy sessions, nuanced reasoning, code reviews, and high-stakes client interactions.</p>
+                        <div class="mt-3 flex flex-wrap gap-1">
+                            <span class="bg-blue-900/40 text-blue-300 text-xs px-2 py-0.5 rounded">Strategy</span>
+                            <span class="bg-blue-900/40 text-blue-300 text-xs px-2 py-0.5 rounded">Complex code</span>
+                            <span class="bg-blue-900/40 text-blue-300 text-xs px-2 py-0.5 rounded">Analysis</span>
+                            <span class="bg-blue-900/40 text-blue-300 text-xs px-2 py-0.5 rounded">Client comms</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-red-950/40 border border-red-700/50 rounded-xl p-5">
+                        <div class="flex items-center gap-3 mb-3">
+                            <div class="w-10 h-10 rounded-lg bg-red-900/60 flex items-center justify-center text-xl">🏗️</div>
+                            <div>
+                                <p class="text-sm font-bold text-red-300">Claude Opus</p>
+                                <p class="text-xs text-gray-500 font-mono">$15/M input</p>
+                            </div>
+                        </div>
+                        <p class="text-sm text-gray-300 leading-relaxed">Use for <strong class="text-white">heavy builds</strong> — major architectural decisions, complex multi-file refactors, and mission-critical deliverables.</p>
+                        <div class="mt-3 flex flex-wrap gap-1">
+                            <span class="bg-red-900/40 text-red-300 text-xs px-2 py-0.5 rounded">Architecture</span>
+                            <span class="bg-red-900/40 text-red-300 text-xs px-2 py-0.5 rounded">Major builds</span>
+                            <span class="bg-red-900/40 text-red-300 text-xs px-2 py-0.5 rounded">Refactors</span>
+                            <span class="bg-red-900/40 text-red-300 text-xs px-2 py-0.5 rounded">Critical paths</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Quick reference banner -->
+                <div class="mt-5 bg-black/60 border border-gray-700 rounded-xl p-4 flex items-center gap-3">
+                    <i class="fa-solid fa-circle-info text-yellow-400 text-lg flex-shrink-0"></i>
+                    <p class="text-sm text-gray-300">
+                        <strong class="text-yellow-300">Rule of thumb:</strong>
+                        MiniMax for daily · Sonnet for complex tasks · Opus for heavy builds · Gemini as cloud fallback · Ollama for free local runs
+                    </p>
+                </div>
+            </div>
+
+            <!-- Model Detail Table -->
+            <div class="bg-gray-900 rounded-xl p-6 border border-gray-800">
+                <h3 class="text-sm font-bold text-gray-300 uppercase tracking-wider mb-5"><i class="fa-solid fa-table mr-2"></i>Model Reference</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left">
+                        <thead class="text-xs text-gray-400 uppercase border-b border-gray-800">
+                            <tr>
+                                <th class="pb-3 pr-4">Model</th>
+                                <th class="pb-3 pr-4">Provider</th>
+                                <th class="pb-3 pr-4 text-right">Input $/M</th>
+                                <th class="pb-3 pr-4 text-right">Output $/M</th>
+                                <th class="pb-3 pr-4 text-right">Context</th>
+                                <th class="pb-3 text-center">Role</th>
+                            </tr>
+                        </thead>
+                        <tbody id="models-table" class="divide-y divide-gray-800 text-gray-300">
+                            <tr><td colspan="6" class="py-4 text-center text-gray-600">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="text-xs text-gray-600 mt-4" id="models-last-updated">—</p>
+            </div>
+        </div>
+
+        <!-- SKILLS TAB -->
+        <div id="tab-skills" class="tab-content max-w-5xl mx-auto">
+            <header class="flex justify-between items-center mb-8">
+                <div>
+                    <h2 class="text-2xl font-bold text-white">Agent Skills</h2>
+                    <p class="text-sm text-gray-400 mt-1">Installed automation modules PenPen can invoke on demand.</p>
+                </div>
+                <span class="bg-gray-800 text-gray-400 text-xs py-1 px-3 rounded-full font-mono">3 installed</span>
+            </header>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                <!-- Apollo to HubSpot -->
+                <div class="bg-gray-900 rounded-xl p-6 border border-gray-800 hover:border-blue-500/50 transition-colors">
+                    <div class="flex items-start justify-between mb-3">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 bg-blue-900/50 rounded-lg flex items-center justify-center mr-4 border border-blue-800">
+                                <span class="text-lg"><i class="fa-solid fa-circle"></i></span>
+                            </div>
+                            <div>
+                                <h3 class="text-base font-bold text-white">Apollo → HubSpot</h3>
+                                <p class="text-xs text-gray-500 font-mono">apollo-to-hubspot</p>
+                            </div>
+                        </div>
+                        <span class="bg-green-900/50 text-green-400 text-xs px-2 py-1 rounded">Active</span>
+                    </div>
+                    <p class="text-sm text-gray-400 mb-4">Ingests cleaned Apollo CSV exports and pushes contacts + companies as deals into a HubSpot pipeline. Handles deduplication and field mapping.</p>
+                    <div class="flex flex-wrap gap-2 mb-4">
+                        <span class="bg-gray-800 text-gray-400 text-xs px-2 py-1 rounded font-mono">clean_apollo_csv.py</span>
+                        <span class="bg-gray-800 text-gray-400 text-xs px-2 py-1 rounded font-mono">import_leads.py</span>
+                    </div>
+                    <div class="text-xs text-gray-600 border-t border-gray-800 pt-3"><i class="fa-regular fa-folder"></i> mission_control/skills/apollo-to-hubspot/</div>
+                </div>
+
+                <!-- Dark Matter Scraper -->
+                <div class="bg-gray-900 rounded-xl p-6 border border-gray-800 hover:border-red-500/50 transition-colors">
+                    <div class="flex items-start justify-between mb-3">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 bg-red-900/50 rounded-lg flex items-center justify-center mr-4 border border-red-800">
+                                <span class="text-lg">🕷️</span>
+                            </div>
+                            <div>
+                                <h3 class="text-base font-bold text-white">Dark Matter Scraper</h3>
+                                <p class="text-xs text-gray-500 font-mono">dark-matter-scraper</p>
+                            </div>
+                        </div>
+                        <span class="bg-green-900/50 text-green-400 text-xs px-2 py-1 rounded">Active</span>
+                    </div>
+                    <p class="text-sm text-gray-400 mb-4">Identifies automotive dealerships currently using competitor platforms (e.g., RevolutionParts). Scrapes target lists for conquest campaigns and PartSites outreach.</p>
+                    <div class="flex flex-wrap gap-2 mb-4">
+                        <span class="bg-gray-800 text-gray-400 text-xs px-2 py-1 rounded font-mono">dark_matter.py</span>
+                        <span class="bg-gray-800 text-gray-400 text-xs px-2 py-1 rounded font-mono">dark_matter_local.py</span>
+                    </div>
+                    <div class="text-xs text-gray-600 border-t border-gray-800 pt-3"><i class="fa-regular fa-folder"></i> mission_control/skills/dark-matter-scraper/</div>
+                </div>
+
+                <!-- Vertex Media Generator -->
+                <div class="bg-gray-900 rounded-xl p-6 border border-gray-800 hover:border-purple-500/50 transition-colors">
+                    <div class="flex items-start justify-between mb-3">
+                        <div class="flex items-center">
+                            <div class="w-10 h-10 bg-purple-900/50 rounded-lg flex items-center justify-center mr-4 border border-purple-800">
+                                <span class="text-lg"><i class="fa-solid fa-palette"></i></span>
+                            </div>
+                            <div>
+                                <h3 class="text-base font-bold text-white">Vertex Media Generator</h3>
+                                <p class="text-xs text-gray-500 font-mono">vertex-media-generator</p>
+                            </div>
+                        </div>
+                        <span class="bg-green-900/50 text-green-400 text-xs px-2 py-1 rounded">Active</span>
+                    </div>
+                    <p class="text-sm text-gray-400 mb-4">Generates product images and marketing visuals using Google Vertex AI (Imagen). Used for creating logos, hero images, and ad creative for SmartDealer products.</p>
+                    <div class="flex flex-wrap gap-2 mb-4">
+                        <span class="bg-gray-800 text-gray-400 text-xs px-2 py-1 rounded font-mono">generate_image.py</span>
+                        <span class="bg-gray-800 text-gray-400 text-xs px-2 py-1 rounded font-mono">generate_image_sdk.py</span>
+                    </div>
+                    <div class="text-xs text-gray-600 border-t border-gray-800 pt-3"><i class="fa-regular fa-folder"></i> mission_control/skills/vertex-media-generator/</div>
+                </div>
+
+                <!-- Add New Skill CTA -->
+                <div class="bg-gray-900 rounded-xl p-6 border border-gray-800 border-dashed flex flex-col items-center justify-center text-center opacity-50 hover:opacity-100 transition-opacity cursor-pointer" onclick="alert('Tell PenPen: \'create a new skill for [task]\'')">
+                    <span class="text-3xl mb-3"><i class="fa-solid fa-bolt"></i></span>
+                    <p class="text-sm font-bold text-white">Add New Skill</p>
+                    <p class="text-xs text-gray-500 mt-1">Tell PenPen to "create a skill for..." in chat.</p>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Tab Switching Logic
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('tab-active'));
+            document.querySelectorAll('.nav-btn').forEach(el => {
+                el.classList.remove('active-tab');
+                el.classList.add('text-gray-400');
+            });
+            
+            document.getElementById('tab-' + tabId).classList.add('tab-active');
+            const activeNav = document.getElementById('nav-' + tabId);
+            activeNav.classList.add('active-tab');
+            activeNav.classList.remove('text-gray-400');
+        }
+
+        // Task Board Logic - Server Backend
+        let tasks = [];
+
+        async function fetchTasks() {
+            try {
+                const response = await fetch('/api/tasks');
+                const data = await response.json();
+                tasks = data.tasks || [];
+                renderBoard();
+            } catch (error) {
+                console.error('Error fetching tasks:', error);
+            }
+            
+            try {
+                const fileRes = await fetch('/api/files');
+                const fileData = await fileRes.json();
+                renderFiles(fileData.apollo_files || [], fileData.scraped_files || []);
+            } catch (error) {
+                console.error('Error fetching files:', error);
+            }
+        }
+
+        function renderFiles(apollo_files, scraped_files) {
+            const dbApolloList = document.getElementById('db-apollo-list');
+            const dbScrapedList = document.getElementById('db-scraped-list');
+            
+            dbApolloList.innerHTML = '';
+            dbScrapedList.innerHTML = '';
+            
+            if(apollo_files.length === 0) {
+                dbApolloList.innerHTML = `
+                    <tr class="hover:bg-gray-800/50 transition-colors">
+                        <td class="px-4 py-4 text-gray-300 font-mono">No Apollo extractions found</td>
+                        <td class="px-4 py-4 text-gray-500">--</td>
+                        <td class="px-4 py-4 text-right"></td>
+                    </tr>
+                `;
+            } else {
+                apollo_files.forEach(f => {
+                    const isCleaned = f.name.includes('cleaned');
+                    const badge = isCleaned ? `<span class="bg-green-900/50 text-green-400 text-[10px] px-2 py-0.5 rounded-full ml-2">Cleaned</span>` : `<span class="bg-yellow-900/50 text-yellow-400 text-[10px] px-2 py-0.5 rounded-full ml-2">Raw</span>`;
+                    
+                    const actionBtn = isCleaned ? 
+                        `<button onclick="addTask('Inject ${f.name} into HubSpot Pipeline')" class="bg-blue-600/20 border border-blue-500/30 text-blue-400 hover:bg-blue-600 hover:text-white transition-colors text-xs font-bold py-1.5 px-4 rounded">Push to Pipeline</button>` : 
+                        `<button onclick="addTask('Clean Apollo list ${f.name} (Remove OEMs & Duplicates)')" class="bg-yellow-600/20 border border-yellow-500/30 text-yellow-400 hover:bg-yellow-600 hover:text-white transition-colors text-xs font-bold py-1.5 px-4 rounded">Clean File</button>`;
+
+                    dbApolloList.innerHTML += `
+                        <tr class="hover:bg-gray-800/50 transition-colors">
+                            <td class="px-4 py-4 text-gray-300 font-mono truncate max-w-xs">${f.name} ${badge}</td>
+                            <td class="px-4 py-4 text-gray-400">${f.records} leads <span class="text-gray-600 text-xs ml-2">(${f.size})</span></td>
+                            <td class="px-4 py-4 text-right">
+                                ${actionBtn}
+                            </td>
+                        </tr>
+                    `;
+                });
+            }
+
+            if(scraped_files.length === 0) {
+                dbScrapedList.innerHTML = `
+                    <tr class="hover:bg-gray-800/50 transition-colors">
+                        <td class="px-4 py-4 text-gray-300 font-mono">No Scraped extractions found</td>
+                        <td class="px-4 py-4 text-gray-500">--</td>
+                        <td class="px-4 py-4 text-right"></td>
+                    </tr>
+                `;
+            } else {
+                scraped_files.forEach(f => {
+                    dbScrapedList.innerHTML += `
+                        <tr class="hover:bg-gray-800/50 transition-colors">
+                            <td class="px-4 py-4 text-gray-300 font-mono truncate max-w-xs">${f.name}</td>
+                            <td class="px-4 py-4 text-gray-400">${f.records} URLs <span class="text-gray-600 text-xs ml-2">(${f.size})</span></td>
+                            <td class="px-4 py-4 text-right">
+                                <button class="bg-gray-800 text-gray-500 text-xs font-bold py-1.5 px-4 rounded cursor-not-allowed">
+                                    Raw Data
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            }
+        }
+
+        async function moveTask(taskId, newStatus) {
+            try {
+                await fetch(`/api/tasks/${taskId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: newStatus })
+                });
+                await fetchTasks();
+                if (document.getElementById('tab-dashboard').classList.contains('tab-active')) loadDashboard();
+                logActivity(`Task ${taskId.slice(-4)} → ${newStatus}`);
+            } catch(e) { console.error('moveTask error', e); }
+        }
+
+        async function saveTask(task) {
+            try {
+                await fetch('/api/tasks', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(task)
+                });
+                await fetchTasks();
+        setInterval(fetchTasks, 5000); // Re-render from server truth
+            } catch (error) {
+                console.error('Error saving task:', error);
+            }
+        }
+
+        function addTask() {
+            const desc = prompt("Enter new task for PenPen (e.g., 'Run Dark Matter on FL dealers'):");
+            if (!desc) return;
+            
+            const newTask = {
+                id: Date.now().toString(),
+                desc: desc,
+                status: 'todo',
+                created: new Date().toISOString()
+            };
+            
+            logActivity(`Added task: ${desc}`);
+            saveTask(newTask);
+        }
+
+        function logActivity(msg) {
+            const feed = document.getElementById('activity-feed');
+            const time = new Date().toLocaleTimeString();
+            feed.innerHTML += `<div><span class="text-gray-600">[${time}]</span> ${msg}</div>`;
+            feed.scrollTop = feed.scrollHeight;
+        }
+
+        function renderBoard() {
+            const todo = document.getElementById('todo-list');
+            const ip = document.getElementById('inprogress-list');
+            const done = document.getElementById('done-list');
+            
+            todo.innerHTML = ''; ip.innerHTML = ''; done.innerHTML = '';
+            let tCount = 0, iCount = 0, dCount = 0;
+
+            tasks.forEach(t => {
+                const actions = t.status === 'todo'
+                    ? `<button onclick="moveTask('${t.id}','inprogress')" class="bg-blue-600/20 border border-blue-500/30 text-blue-400 hover:bg-blue-600 hover:text-white text-xs font-bold py-1 px-3 rounded transition-all">▶ Start</button>`
+                    : t.status === 'inprogress'
+                    ? `<button onclick="moveTask('${t.id}','done')" class="bg-green-600/20 border border-green-500/30 text-green-400 hover:bg-green-600 hover:text-white text-xs font-bold py-1 px-3 rounded transition-all">✓ Complete</button>
+                       <button onclick="moveTask('${t.id}','todo')" class="bg-gray-700 text-gray-400 hover:bg-gray-600 text-xs font-bold py-1 px-3 rounded transition-all ml-1">↩ Back</button>`
+                    : `<button onclick="moveTask('${t.id}','todo')" class="bg-gray-700 text-gray-400 hover:bg-gray-600 text-xs py-1 px-3 rounded transition-all">↩ Reopen</button>`;
+
+                const card = `
+                    <div class="task-card p-4 rounded-lg shadow-sm">
+                        <p class="text-sm text-gray-200 mb-3">${t.desc}</p>
+                        <div class="flex justify-between items-center text-xs text-gray-500">
+                            <span>ID: ${t.id.slice(-4)}</span>
+                            <div class="flex items-center gap-2">
+                                ${t.status === 'todo' ? '<span class="text-red-400 animate-pulse">Waiting</span>' : ''}
+                                ${t.status === 'inprogress' ? '<span class="text-blue-400 animate-pulse">In Progress</span>' : ''}
+                                ${t.status === 'done' ? '<span class="text-green-400">Done</span>' : ''}
+                                ${actions}
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                if(t.status === 'todo') { todo.innerHTML += card; tCount++; }
+                if(t.status === 'inprogress') { ip.innerHTML += card; iCount++; }
+                if(t.status === 'done') { done.innerHTML += card; dCount++; }
+            });
+
+            document.getElementById('todo-count').innerText = tCount;
+            document.getElementById('ip-count').innerText = iCount;
+            document.getElementById('done-count').innerText = dCount;
+        }
+
+        // Team Logic
+        async function loadDistLists() {
+            try {
+                const res = await fetch('/api/dist-lists');
+                const data = await res.json();
+                const container = document.getElementById('dist-lists-container');
+                container.innerHTML = '';
+
+                for (const list of data.lists) {
+                    const div = document.createElement('div');
+                    div.innerHTML = `
+                        <div class="flex justify-between items-center mb-3">
+                            <div>
+                                <h4 class="text-sm font-bold text-white">${list.name}</h4>
+                                <p class="text-xs text-gray-500">${list.description}</p>
+                            </div>
+                            <span class="bg-gray-800 text-gray-400 text-xs px-2 py-1 rounded-full">${list.contacts.length} contacts</span>
+                        </div>
+                        <div class="bg-black rounded-lg border border-gray-800 overflow-hidden mb-3">
+                            <table class="w-full text-sm">
+                                <thead class="bg-gray-900 text-xs text-gray-500 uppercase">
+                                    <tr>
+                                        <th class="px-4 py-2 text-left">Name</th>
+                                        <th class="px-4 py-2 text-left">Email</th>
+                                        <th class="px-4 py-2 text-right">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="list-${list.id}" class="divide-y divide-gray-800">
+                                    ${list.contacts.map(c => `
+                                        <tr class="hover:bg-gray-800/30 transition-colors">
+                                            <td class="px-4 py-2 text-gray-300">${c.name}</td>
+                                            <td class="px-4 py-2 text-gray-500 font-mono text-xs">${c.email}</td>
+                                            <td class="px-4 py-2 text-right">
+                                                <button onclick="removeContact('${list.id}','${c.email}')" class="text-red-400 hover:text-red-300 text-xs font-bold transition-colors">Remove</button>
+                                            </td>
+                                        </tr>`).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="flex gap-2">
+                            <input id="new-name-${list.id}" type="text" placeholder="Full name" class="flex-1 bg-black border border-gray-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-red-500">
+                            <input id="new-email-${list.id}" type="email" placeholder="email@company.com" class="flex-1 bg-black border border-gray-700 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-red-500">
+                            <button onclick="addContact('${list.id}')" class="bg-red-600 hover:bg-red-700 text-white text-xs font-bold py-2 px-4 rounded transition-all">+ Add</button>
+                        </div>
+                    `;
+                    container.appendChild(div);
+                }
+            } catch(e) { console.error('Dist lists error', e); }
+        }
+
+        async function addContact(listId) {
+            const name = document.getElementById(`new-name-${listId}`).value.trim();
+            const email = document.getElementById(`new-email-${listId}`).value.trim();
+            if (!name || !email) return;
+            await fetch(`/api/dist-lists/${listId}/contacts`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({name, email})
+            });
+            document.getElementById(`new-name-${listId}`).value = '';
+            document.getElementById(`new-email-${listId}`).value = '';
+            loadDistLists();
+        }
+
+        async function removeContact(listId, email) {
+            if (!confirm(`Remove ${email}?`)) return;
+            await fetch(`/api/dist-lists/${listId}/contacts/${encodeURIComponent(email)}`, {method: 'DELETE'});
+            loadDistLists();
+        }
+
+        async function loadTeam() {
+            loadDistLists();
+            // Check Ollama status
+            try {
+                const res = await fetch('http://localhost:11434/api/tags');
+                const data = await res.json();
+                const models = data.models || [];
+                const hasLlama = models.find(m => m.name.includes('llama3.2'));
+                const modelList = models.map(m => `<span class="bg-gray-800 text-green-400 text-xs px-2 py-1 rounded font-mono mr-2">${m.name}</span>`).join('');
+
+                document.getElementById('ollama-status').innerHTML = `
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="w-2 h-2 rounded-full bg-green-400"></span>
+                        <span class="text-green-400 font-bold">Ollama Online</span>
+                        <span class="text-gray-600 text-xs">${models.length} model(s) loaded</span>
+                    </div>
+                    <div>${modelList || '<span class="text-gray-500 text-xs">No models detected</span>'}</div>
+                `;
+
+                const localStatus = hasLlama
+                    ? `<span class="w-1.5 h-1.5 rounded-full bg-green-400 inline-block"></span> <span class="text-green-400">Online · Local</span>`
+                    : `<span class="w-1.5 h-1.5 rounded-full bg-yellow-400 inline-block"></span> <span class="text-yellow-400">Downloading model...</span>`;
+
+                document.getElementById('scout-status').innerHTML = localStatus;
+                document.getElementById('scribe-status').innerHTML = localStatus;
+
+            } catch(e) {
+                document.getElementById('ollama-status').innerHTML = '<span class="text-red-400">Ollama offline — run: ollama serve</span>';
+                document.getElementById('scout-status').innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-red-500 inline-block"></span> <span class="text-red-400">Offline</span>';
+                document.getElementById('scribe-status').innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-red-500 inline-block"></span> <span class="text-red-400">Offline</span>';
+            }
+        }
+
+        function assignTask() {
+            const agent = document.getElementById('assign-agent').value;
+            const task = document.getElementById('assign-task').value.trim();
+            if (!task) return;
+
+            const desc = `${agent}: ${task}`;
+            const newTask = { id: Date.now().toString(), desc, status: 'todo', created: new Date().toISOString() };
+            document.getElementById('assign-task').value = '';
+            logActivity ? logActivity(`Assigned to ${agent}: ${task}`) : null;
+            saveTask(newTask);
+            alert(`Task assigned to ${agent}!`);
+        }
+
+        // Pipeline Logic
+        async function loadPipeline() {
+            document.getElementById('pipeline-board').innerHTML = '<p class="text-gray-600 text-sm">Loading...</p>';
+            try {
+                const res = await fetch('/api/pipeline');
+                const data = await res.json();
+                const deals = data.deals || [];
+
+                // Stats
+                let totalValue = 0;
+                deals.forEach(d => { if (d.amount) totalValue += parseFloat(d.amount); });
+                document.getElementById('pipe-total-deals').innerText = deals.length;
+                document.getElementById('pipe-total-value').innerText = totalValue > 0 ? '$' + totalValue.toLocaleString() : '—';
+
+                // Group by stage
+                const stages = {};
+                deals.forEach(d => {
+                    if (!stages[d.stage]) stages[d.stage] = [];
+                    stages[d.stage].push(d);
+                });
+                document.getElementById('pipe-stages').innerText = Object.keys(stages).length;
+
+                const stageColors = ['blue','purple','green','yellow','orange','red'];
+                const board = document.getElementById('pipeline-board');
+                board.innerHTML = '';
+
+                Object.entries(stages).forEach(([stage, stageDeals], i) => {
+                    const color = stageColors[i % stageColors.length];
+                    const div = document.createElement('div');
+                    div.className = 'bg-gray-900 rounded-xl border border-gray-800 overflow-hidden';
+                    div.innerHTML = `
+                        <div class="flex justify-between items-center px-5 py-3 border-b border-gray-800 bg-${color}-900/20">
+                            <h3 class="text-sm font-bold text-${color}-400 uppercase tracking-wider">${stage}</h3>
+                            <span class="bg-${color}-900/50 text-${color}-400 text-xs px-2 py-1 rounded-full">${stageDeals.length} deal${stageDeals.length !== 1 ? 's' : ''}</span>
+                        </div>
+                        <div class="divide-y divide-gray-800">
+                            ${stageDeals.map(d => `
+                                <div class="flex items-center justify-between px-5 py-3 hover:bg-gray-800/30 transition-colors">
+                                    <div>
+                                        <p class="text-sm text-white">${d.name}</p>
+                                        <p class="text-xs text-gray-500 font-mono">${d.modified ? new Date(d.modified).toLocaleDateString() : '—'}</p>
+                                    </div>
+                                    <div class="flex items-center gap-3">
+                                        ${d.amount ? `<span class="text-sm font-bold text-green-400">$${parseFloat(d.amount).toLocaleString()}</span>` : ''}
+                                        <a href="https://app.hubspot.com/contacts/deals/${d.id}" target="_blank" class="text-xs text-gray-600 hover:text-blue-400 transition-colors">View ↗</a>
+                                    </div>
+                                </div>`).join('')}
+                        </div>`;
+                    board.appendChild(div);
+                });
+
+                if (!deals.length) board.innerHTML = '<p class="text-gray-600 text-sm p-4">No deals found. Run Apollo pull to populate the pipeline.</p>';
+
+            } catch(e) {
+                document.getElementById('pipeline-board').innerHTML = `<p class="text-red-400 text-sm">${e.message}</p>`;
+            }
+        }
+
+        // Inbox Logic
+        async function loadInbox() {
+            document.getElementById('inbox-list').innerHTML = '<p class="text-gray-600 text-sm">Loading...</p>';
+            try {
+                const res = await fetch('/api/inbox');
+                const data = await res.json();
+                const emails = data.emails || [];
+                if (!emails.length) {
+                    document.getElementById('inbox-list').innerHTML = '<p class="text-gray-600 text-sm">No emails found.</p>';
+                    return;
+                }
+                document.getElementById('inbox-list').innerHTML = emails.map(e => {
+                    const date = new Date(e.received).toLocaleString();
+                    const unread = !e.is_read ? 'border-blue-500/50 bg-blue-900/10' : 'border-gray-800';
+                    const dot = !e.is_read ? '<span class="w-2 h-2 rounded-full bg-blue-400 inline-block flex-shrink-0 mt-1"></span>' : '<span class="w-2 h-2 rounded-full bg-gray-700 inline-block flex-shrink-0 mt-1"></span>';
+                    return `
+                    <div class="bg-gray-900 rounded-xl p-4 border ${unread} hover:border-gray-600 transition-colors cursor-pointer" onclick="markRead('${e.id}', this)">
+                        <div class="flex items-start gap-3">
+                            ${dot}
+                            <div class="flex-1 min-w-0">
+                                <div class="flex justify-between items-start mb-1">
+                                    <p class="text-sm font-bold text-white truncate">${e.from_name || e.from_email}</p>
+                                    <p class="text-xs text-gray-600 flex-shrink-0 ml-4">${date}</p>
+                                </div>
+                                <p class="text-sm text-gray-300 mb-1">${e.subject}</p>
+                                <p class="text-xs text-gray-500 truncate">${e.preview}</p>
+                            </div>
+                        </div>
+                    </div>`;
+                }).join('');
+            } catch(e) { document.getElementById('inbox-list').innerHTML = `<p class="text-red-400 text-sm">Error: ${e.message}</p>`; }
+        }
+
+        async function markRead(emailId, el) {
+            await fetch(`/api/inbox/${emailId}/read`, {method: 'POST'});
+            el.querySelector('span').className = 'w-2 h-2 rounded-full bg-gray-700 inline-block flex-shrink-0 mt-1';
+            el.className = el.className.replace('border-blue-500/50 bg-blue-900/10', 'border-gray-800');
+        }
+
+        // Scout Archive Logic
+        async function loadScoutArchive() {
+            try {
+                const res = await fetch('/api/scout-archive');
+                const data = await res.json();
+                const briefs = data.briefs || [];
+                const el = document.getElementById('scout-archive-list');
+                if (!briefs.length) {
+                    el.innerHTML = '<p class="text-gray-600 text-sm">No briefs archived yet — Scout runs daily at 8AM.</p>';
+                    return;
+                }
+                el.innerHTML = briefs.map(b => `
+                    <div class="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">
+                        <div class="flex justify-between items-center px-5 py-3 border-b border-gray-800 cursor-pointer hover:bg-gray-800/50 transition-colors" onclick="this.nextElementSibling.classList.toggle('hidden')">
+                            <p class="text-sm font-bold text-white">🔭 ${b.date}</p>
+                            <span class="text-gray-600 text-xs">▼</span>
+                        </div>
+                        <div class="p-5 hidden">
+                            <pre class="text-xs text-gray-300 whitespace-pre-wrap font-sans leading-relaxed">${b.content}</pre>
+                        </div>
+                    </div>`).join('');
+            } catch(e) { console.error(e); }
+        }
+
+        // Revenue Tracker Logic
+        async function loadRevenue() {
+            try {
+                const res = await fetch('/api/revenue');
+                const data = await res.json();
+                const entries = (data.entries || []).slice().reverse();
+
+                // Chart
+                const labels = entries.map(e => e.date);
+                const values = entries.map(e => e.mrr);
+                const ctx = document.getElementById('revenue-chart').getContext('2d');
+                if (window._revChart) window._revChart.destroy();
+                window._revChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels,
+                        datasets: [{
+                            label: 'MRR ($)',
+                            data: values,
+                            borderColor: '#dc2626',
+                            backgroundColor: 'rgba(220,38,38,0.1)',
+                            fill: true,
+                            tension: 0.4,
+                            pointBackgroundColor: '#dc2626'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            x: { ticks: { color: '#6b7280' }, grid: { color: '#1f2937' } },
+                            y: { ticks: { color: '#6b7280', callback: v => '$' + v.toLocaleString() }, grid: { color: '#1f2937' } }
+                        }
+                    }
+                });
+
+                // History list
+                const list = document.getElementById('revenue-list');
+                if (!entries.length) {
+                    list.innerHTML = '<p class="text-gray-600 text-sm">No entries yet. Log your first MRR above.</p>';
+                    return;
+                }
+                list.innerHTML = entries.map(e => `
+                    <div class="flex items-center justify-between p-3 bg-black rounded-lg border border-gray-800">
+                        <div class="flex items-center gap-3">
+                            <p class="text-xs text-gray-500 font-mono">${e.date}</p>
+                            <p class="text-xs text-gray-400">${e.note || '—'}</p>
+                        </div>
+                        <p class="text-sm font-bold text-green-400">$${Number(e.mrr).toLocaleString()}/mo</p>
+                    </div>`).join('');
+            } catch(e) { console.error(e); }
+        }
+
+        async function logRevenue() {
+            const date = document.getElementById('rev-date').value || new Date().toISOString().split('T')[0];
+            const mrr = document.getElementById('rev-mrr').value;
+            const note = document.getElementById('rev-note').value;
+            if (!mrr) return;
+            await fetch('/api/revenue', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({date, mrr: parseFloat(mrr), note})});
+            document.getElementById('rev-mrr').value = '';
+            document.getElementById('rev-note').value = '';
+            loadRevenue();
+        }
+
+        // Knowledge Base Logic
+        let kbData = {};
+        const folderIcons = { products: '<i class="fa-solid fa-box"></i>', sales: '<i class="fa-solid fa-chart-line"></i>', integrations: '<i class="fa-solid fa-link"></i>', company: '<i class="fa-solid fa-building"></i>', root: '<i class="fa-solid fa-file"></i>' };
+        const folderColors = { products: 'blue', sales: 'red', integrations: 'purple', company: 'green', root: 'gray' };
+
+        async function loadKB() {
+            try {
+                const res = await fetch('/api/kb');
+                kbData = await res.json();
+                renderKBTree(kbData);
+            } catch(e) { console.error('KB load error', e); }
+        }
+
+        function renderKBTree(data, filter='') {
+            const tree = document.getElementById('kb-tree');
+            tree.innerHTML = '';
+            for (const [folder, files] of Object.entries(data)) {
+                const filtered = files.filter(f => !filter || f.name.toLowerCase().includes(filter.toLowerCase()));
+                if (filtered.length === 0) continue;
+                const color = folderColors[folder] || 'gray';
+                const icon = folderIcons[folder] || '<i class="fa-solid fa-file"></i>';
+                const section = document.createElement('div');
+                section.innerHTML = `
+                    <p class="text-xs font-bold text-${color}-400 uppercase tracking-wider mb-2">${icon} ${folder}</p>
+                    <ul class="space-y-1 ml-2">
+                        ${filtered.map(f => `
+                            <li>
+                                <button onclick="loadKBFile('${f.path}', '${f.name}')"
+                                    class="kb-file-btn w-full text-left px-3 py-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-colors text-xs truncate"
+                                    data-path="${f.path}">
+                                    ${f.name}
+                                </button>
+                            </li>`).join('')}
+                    </ul>`;
+                tree.appendChild(section);
+            }
+        }
+
+        function filterKB() {
+            const q = document.getElementById('kb-search').value;
+            renderKBTree(kbData, q);
+        }
+
+        async function loadKBFile(path, name) {
+            // Highlight active
+            document.querySelectorAll('.kb-file-btn').forEach(b => b.classList.remove('bg-gray-700', 'text-white'));
+            const btn = document.querySelector(`[data-path="${path}"]`);
+            if (btn) { btn.classList.add('bg-gray-700', 'text-white'); }
+
+            document.getElementById('kb-header').innerHTML = `
+                <p class="text-sm font-bold text-white">${name}</p>
+                <p class="text-xs text-gray-500 font-mono">kb/${path}</p>`;
+            document.getElementById('kb-content').innerHTML = '<p class="text-gray-600">Loading...</p>';
+
+            try {
+                const res = await fetch(`/api/kb/file?path=${encodeURIComponent(path)}`);
+                const data = await res.json();
+                // Simple markdown-ish rendering
+                let html = data.content
+                    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+                    .replace(/^# (.+)$/gm, '<span class="text-xl font-bold text-white block mt-2">$1</span>')
+                    .replace(/^## (.+)$/gm, '<span class="text-base font-bold text-blue-400 block mt-4 mb-1">$1</span>')
+                    .replace(/^### (.+)$/gm, '<span class="text-sm font-bold text-gray-300 block mt-3">$1</span>')
+                    .replace(/\*\*(.+?)\*\*/g, '<strong class="text-white">$1</strong>')
+                    .replace(/`(.+?)`/g, '<code class="bg-gray-800 text-green-400 px-1 rounded text-xs">$1</code>')
+                    .replace(/^- (.+)$/gm, '<div class="flex gap-2 text-gray-300"><span class="text-gray-600">—</span><span>$1</span></div>')
+                    .replace(/^✅ (.+)$/gm, '<div class="flex gap-2"><span class="text-green-400"><i class="fa-solid fa-check"></i></span><span class="text-gray-300">$1</span></div>')
+                    .replace(/^⚠️ (.+)$/gm, '<div class="flex gap-2"><span class="text-yellow-400"><i class="fa-solid fa-triangle-exclamation"></i></span><span class="text-gray-300">$1</span></div>')
+                    .replace(/\n/g, '<br>');
+                document.getElementById('kb-content').innerHTML = html;
+            } catch(e) {
+                document.getElementById('kb-content').innerHTML = '<p class="text-red-400">Error loading file.</p>';
+            }
+        }
+
+        // Token Monitor Logic
+        async function loadTokenStats() {
+            try {
+                const res = await fetch('/api/token-stats');
+                const data = await res.json();
+
+                // Per-model cards
+                const cards = document.getElementById('token-model-cards');
+                const totals = data.totals || {};
+                const modelNames = Object.keys(totals);
+
+                if (modelNames.length === 0) {
+                    cards.innerHTML = `<div class="bg-gray-900 rounded-xl p-6 border border-gray-800 text-gray-500 text-sm">No data yet. PenPen will log stats after each session.</div>`;
+                } else {
+                    const modelColors = ['blue','purple','green','yellow','red'];
+                    cards.innerHTML = modelNames.map((model, i) => {
+                        const t = totals[model];
+                        const color = modelColors[i % modelColors.length];
+                        const shortModel = model.split('/').pop();
+                        const cacheRate = t.tokens_in > 0 ? Math.round((t.cache_hit_tokens / (t.cache_hit_tokens + t.tokens_in)) * 100) : 0;
+                        return `
+                        <div class="bg-gray-900 rounded-xl p-6 border border-${color}-900/50 hover:border-${color}-500/50 transition-colors">
+                            <div class="flex justify-between items-start mb-4">
+                                <div>
+                                    <h3 class="text-base font-bold text-white">${shortModel}</h3>
+                                    <p class="text-xs text-gray-500 font-mono">${model}</p>
+                                </div>
+                                <span class="bg-${color}-900/40 text-${color}-400 text-xs px-2 py-1 rounded font-mono">${t.session_count} session${t.session_count !== 1 ? 's' : ''}</span>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4 text-center">
+                                <div class="bg-black rounded-lg p-3 border border-gray-800">
+                                    <p class="text-lg font-bold text-white">${fmtNum(t.tokens_in + t.tokens_out)}</p>
+                                    <p class="text-xs text-gray-500">Total Tokens</p>
+                                </div>
+                                <div class="bg-black rounded-lg p-3 border border-gray-800">
+                                    <p class="text-lg font-bold text-red-400">$${t.total_cost_usd.toFixed(3)}</p>
+                                    <p class="text-xs text-gray-500">Total Cost</p>
+                                </div>
+                                <div class="bg-black rounded-lg p-3 border border-gray-800">
+                                    <p class="text-lg font-bold text-green-400">${cacheRate}%</p>
+                                    <p class="text-xs text-gray-500">Cache Hit Rate</p>
+                                </div>
+                                <div class="bg-black rounded-lg p-3 border border-gray-800">
+                                    <p class="text-lg font-bold text-blue-400">${fmtNum(t.cache_hit_tokens)}</p>
+                                    <p class="text-xs text-gray-500">Cached Tokens</p>
+                                </div>
+                            </div>
+                        </div>`;
+                    }).join('');
+                }
+
+                // Aggregate totals
+                let totalIn = 0, totalOut = 0, totalCache = 0, totalCost = 0;
+                for (const t of Object.values(totals)) {
+                    totalIn += t.tokens_in;
+                    totalOut += t.tokens_out;
+                    totalCache += t.cache_hit_tokens;
+                    totalCost += t.total_cost_usd;
+                }
+                document.getElementById('stat-total-in').innerText = fmtNum(totalIn);
+                document.getElementById('stat-total-out').innerText = fmtNum(totalOut);
+                document.getElementById('stat-cache-total').innerText = fmtNum(totalCache);
+                document.getElementById('stat-total-cost').innerText = '$' + totalCost.toFixed(3);
+
+                // Session log
+                const sessions = (data.sessions || []).slice().reverse();
+                const tbody = document.getElementById('token-session-log');
+                if (sessions.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="7" class="py-4 text-center text-gray-600">No sessions logged yet.</td></tr>`;
+                } else {
+                    tbody.innerHTML = sessions.map(s => {
+                        const contextPct = s.context_limit ? Math.round((s.context_used / s.context_limit) * 100) : '?';
+                        const shortM = (s.model || '').split('/').pop();
+                        const cacheHit = s.cache_hit_tokens || 0;
+                        return `<tr class="hover:bg-gray-800/30 transition-colors">
+                            <td class="py-3 pr-4 text-xs text-gray-400 font-mono">${s.date} ${s.time || ''}</td>
+                            <td class="py-3 pr-4 text-xs font-mono text-blue-400">${shortM}</td>
+                            <td class="py-3 pr-4 text-right text-xs">${fmtNum(s.tokens_in || 0)}</td>
+                            <td class="py-3 pr-4 text-right text-xs">${fmtNum(s.tokens_out || 0)}</td>
+                            <td class="py-3 pr-4 text-right text-xs text-green-400">${fmtNum(cacheHit)}</td>
+                            <td class="py-3 pr-4 text-right text-xs">${contextPct}%</td>
+                            <td class="py-3 text-right text-xs text-red-400">$${(s.cost_usd || 0).toFixed(3)}</td>
+                        </tr>`;
+                    }).join('');
+                }
+
+                if (data.last_updated) {
+                    document.getElementById('token-last-updated').innerText = 'Last updated: ' + new Date(data.last_updated).toLocaleString();
+                }
+
+                // Pie chart
+                const modelColorMap2 = {
+                    'MiniMax-M2.7': '#f97316',
+                    'MiniMax-M2.7-highspeed': '#fb923c',
+                    'claude-sonnet-4-6': '#dc2626',
+                    'claude-haiku-4': '#7c3aed',
+                    'claude-opus-4-6': '#b91c1c',
+                    'gemini-2.5-flash': '#2563eb',
+                    'gemini-2.5-pro': '#1d4ed8',
+                    'gemini-web-search': '#2563eb',
+                    'gemini-memory-search': '#60a5fa',
+                    'gemini-embedding-001': '#60a5fa',
+                    'gemini-grounding': '#2563eb',
+                    'llama3.2:3b': '#059669',
+                };
+                const defaultColors = ['#dc2626','#2563eb','#7c3aed','#059669','#d97706','#60a5fa'];
+
+                const pieLabels = [], pieData = [], pieColors = [], pieLegend = [];
+                let grandTotal = 0;
+                Object.entries(totals).forEach(([model, t], i) => {
+                    const short = model.split('/').pop();
+                    const cost = t.total_cost_usd || 0;
+                    if (cost === 0) return;
+                    grandTotal += cost;
+                    const color = modelColorMap2[short] || defaultColors[i % defaultColors.length];
+                    pieLabels.push(short);
+                    pieData.push(cost);
+                    pieColors.push(color);
+                    pieLegend.push({ label: short, cost, color });
+                });
+
+                document.getElementById('pie-total').innerText = '$' + grandTotal.toFixed(3);
+
+                // Legend
+                const legendEl = document.getElementById('pie-legend');
+                legendEl.innerHTML = pieLegend.map(l => `
+                    <div class="flex items-center gap-3">
+                        <span class="w-3 h-3 rounded-full flex-shrink-0" style="background:${l.color}"></span>
+                        <div>
+                            <p class="text-sm text-white font-mono">${l.label}</p>
+                            <p class="text-xs text-gray-500">$${l.cost.toFixed(3)} · ${grandTotal > 0 ? Math.round((l.cost/grandTotal)*100) : 0}%</p>
+                        </div>
+                    </div>`).join('');
+
+                // Draw/update chart
+                const ctx = document.getElementById('cost-pie-chart').getContext('2d');
+                if (window._pieChart) window._pieChart.destroy();
+                window._pieChart = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: { labels: pieLabels, datasets: [{ data: pieData, backgroundColor: pieColors, borderWidth: 2, borderColor: '#111827' }] },
+                    options: {
+                        cutout: '72%',
+                        plugins: { legend: { display: false }, tooltip: {
+                            callbacks: { label: ctx => ` $${ctx.parsed.toFixed(3)}` }
+                        }},
+                        animation: { animateRotate: true, duration: 600 }
+                    }
+                });
+
+            } catch(e) {
+                console.error('Error loading token stats:', e);
+            }
+        }
+
+        function fmtNum(n) {
+            if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
+            if (n >= 1000) return (n / 1000).toFixed(1) + 'k';
+            return n.toString();
+        }
+
+        // Dashboard Logic
+        async function loadDashboard() {
+            // Timestamp
+            document.getElementById('dash-timestamp').innerText = 'Last updated: ' + new Date().toLocaleString();
+
+            // Tasks
+            try {
+                const res = await fetch('/api/tasks');
+                const data = await res.json();
+                const tasks = data.tasks || [];
+                const todo = tasks.filter(t => t.status === 'todo');
+                const ip = tasks.filter(t => t.status === 'inprogress');
+                const done = tasks.filter(t => t.status === 'done');
+
+                document.getElementById('kpi-todo').innerText = todo.length;
+                document.getElementById('kpi-inprogress').innerText = ip.length;
+                document.getElementById('kpi-done').innerText = done.length;
+
+                // Open task list
+                const taskList = document.getElementById('dash-task-list');
+                const openTasks = [...ip, ...todo];
+                if (openTasks.length === 0) {
+                    taskList.innerHTML = `<p class="text-gray-600 text-sm">All clear — no open tasks.</p>`;
+                } else {
+                    taskList.innerHTML = openTasks.map(t => `
+                        <div class="flex items-start gap-3 p-3 bg-black rounded-lg border border-gray-800">
+                            <span class="mt-0.5 w-2 h-2 rounded-full flex-shrink-0 ${t.status === 'inprogress' ? 'bg-blue-400 animate-pulse' : 'bg-red-500'}"></span>
+                            <p class="text-sm text-gray-300 leading-snug">${t.desc}</p>
+                        </div>`).join('');
+                }
+            } catch(e) { console.error('Dashboard tasks error', e); }
+
+            // Check Ollama for local agent status
+            try {
+                const ollamaRes = await fetch('http://localhost:11434/api/tags');
+                const ollamaData = await ollamaRes.json();
+                const hasLlama = ollamaData.models?.find(m => m.name.includes('llama3.2'));
+                const localStatus = hasLlama
+                    ? `<span class="w-1.5 h-1.5 rounded-full bg-green-400 inline-block"></span> <span class="text-green-400">Online · Free</span>`
+                    : `<span class="w-1.5 h-1.5 rounded-full bg-yellow-400 inline-block"></span> <span class="text-yellow-400">No model</span>`;
+                document.getElementById('dash-scout-status').innerHTML = localStatus;
+                document.getElementById('dash-scribe-status').innerHTML = localStatus;
+            } catch(e) {
+                const offlineStatus = `<span class="w-1.5 h-1.5 rounded-full bg-red-500 inline-block"></span> <span class="text-red-400">Offline</span>`;
+                document.getElementById('dash-scout-status').innerHTML = offlineStatus;
+                document.getElementById('dash-scribe-status').innerHTML = offlineStatus;
+            }
+
+            // Token stats
+            try {
+                const res = await fetch('/api/token-stats');
+                const data = await res.json();
+                const sessions = data.sessions || [];
+                const latest = sessions[sessions.length - 1];
+                const totals = data.totals || {};
+
+                // All-time cost
+                let totalCost = 0;
+                for (const t of Object.values(totals)) totalCost += t.total_cost_usd;
+                document.getElementById('kpi-cost').innerText = '$' + totalCost.toFixed(3);
+
+                if (latest) {
+                    const ctxPct = latest.context_limit ? Math.round((latest.context_used / latest.context_limit) * 100) : 0;
+                    const cacheTotal = (latest.cache_hit_tokens || 0) + (latest.tokens_in || 0);
+                    const cachePct = cacheTotal > 0 ? Math.round(((latest.cache_hit_tokens || 0) / cacheTotal) * 100) : 0;
+
+                    document.getElementById('dash-context-pct').innerText = ctxPct + '%';
+                    document.getElementById('dash-context-bar').style.width = ctxPct + '%';
+                    document.getElementById('dash-context-bar').className = `h-2 rounded-full transition-all duration-500 ${ctxPct > 80 ? 'bg-red-500' : ctxPct > 50 ? 'bg-yellow-500' : 'bg-blue-500'}`;
+
+                    document.getElementById('dash-cache-pct').innerText = cachePct + '%';
+                    document.getElementById('dash-cache-bar').style.width = cachePct + '%';
+
+                    document.getElementById('dash-tokens-in').innerText = fmtNum(latest.tokens_in || 0);
+                    document.getElementById('dash-tokens-out').innerText = fmtNum(latest.tokens_out || 0);
+                    document.getElementById('dash-cached').innerText = fmtNum(latest.cache_hit_tokens || 0);
+                    document.getElementById('dash-model').innerText = (latest.model || '').split('/').pop();
+                }
+
+                // Dash pie chart
+                const modelColorMap = {
+                    'MiniMax-M2.7': '#f97316',
+                    'MiniMax-M2.7-highspeed': '#fb923c',
+                    'claude-sonnet-4-6': '#dc2626',
+                    'claude-haiku-4': '#7c3aed',
+                    'claude-opus-4-6': '#b91c1c',
+                    'gemini-2.5-flash': '#2563eb',
+                    'gemini-2.5-pro': '#1d4ed8',
+                    'gemini-web-search': '#2563eb',
+                    'gemini-memory-search': '#60a5fa',
+                    'gemini-embedding-001': '#60a5fa',
+                    'gemini-grounding': '#2563eb',
+                    'llama3.2:3b': '#059669',
+                };
+                const fallbackColors = ['#dc2626','#2563eb','#7c3aed','#059669','#d97706','#60a5fa'];
+                const dLabels=[], dData=[], dColors=[], dLegend=[];
+                let dTotal=0;
+                Object.entries(totals).forEach(([model,t],i) => {
+                    const short = model.split('/').pop();
+                    const cost = t.total_cost_usd||0;
+                    if (cost === 0) return;
+                    dTotal+=cost;
+                    const color = modelColorMap[short] || fallbackColors[i%fallbackColors.length];
+                    dLabels.push(short); dData.push(cost);
+                    dColors.push(color);
+                    dLegend.push({label:short,cost,color});
+                });
+                document.getElementById('dash-pie-total').innerText = '$'+dTotal.toFixed(2);
+                document.getElementById('dash-pie-legend').innerHTML = dLegend.map(l=>`
+                    <div class="flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 rounded-full flex-shrink-0" style="background:${l.color}"></span>
+                        <div><p class="text-white font-mono">${l.label}</p><p class="text-gray-500">$${l.cost.toFixed(3)} · ${dTotal>0?Math.round((l.cost/dTotal)*100):0}%</p></div>
+                    </div>`).join('');
+                const dCtx = document.getElementById('dash-pie-chart').getContext('2d');
+                if(window._dashPie) window._dashPie.destroy();
+                window._dashPie = new Chart(dCtx,{
+                    type:'doughnut',
+                    data:{labels:dLabels,datasets:[{data:dData,backgroundColor:dColors,borderWidth:2,borderColor:'#111827'}]},
+                    options:{cutout:'70%',plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` $${c.parsed.toFixed(3)}`}}},animation:{duration:500}}
+                });
+
+            } catch(e) { console.error('Dashboard token error', e); }
+        }
+
+        // Real-time SSE updates
+        function connectSSE() {
+            const es = new EventSource('/api/events');
+
+            es.addEventListener('connected', () => {
+                console.log('[MC] SSE connected — real-time mode active');
+                logActivity('<i class="fa-solid fa-circle" style="color:green"></i> Real-time connection established.');
+                document.getElementById('dash-sse-dot').className = 'w-2 h-2 rounded-full bg-green-400 animate-pulse inline-block';
+                document.getElementById('dash-sse-indicator').innerHTML = '<span class="w-2 h-2 rounded-full bg-green-400 animate-pulse inline-block" id="dash-sse-dot"></span> Real-time';
+            });
+
+            es.addEventListener('tasks', () => {
+                fetchTasks();
+                if (document.getElementById('tab-dashboard').classList.contains('tab-active')) loadDashboard();
+                logActivity('<i class="fa-solid fa-clipboard-list"></i> Task board updated.');
+            });
+
+            es.addEventListener('tokens', () => {
+                if (document.getElementById('tab-tokens').classList.contains('tab-active')) loadTokenStats();
+                if (document.getElementById('tab-dashboard').classList.contains('tab-active')) loadDashboard();
+            });
+
+            es.addEventListener('revenue', () => {
+                if (document.getElementById('tab-revenue').classList.contains('tab-active')) loadRevenue();
+            });
+
+            es.onerror = () => {
+                console.warn('[MC] SSE lost — reconnecting in 5s...');
+                document.getElementById('dash-sse-indicator').innerHTML = '<span class="w-2 h-2 rounded-full bg-red-500 inline-block" id="dash-sse-dot"></span> Reconnecting...';
+                es.close();
+                setTimeout(connectSSE, 5000);
+            };
+        }
+
+        // ─── Models Tab Logic ───────────────────────────────────────────────────────
+
+        const MODEL_DEFS = [
+            { id: 'minimax-portal/MiniMax-M2.7', name: 'MiniMax M2.7', provider: 'MiniMax', inputCost: 0.30, outputCost: 1.20, context: '200K', role: 'Primary · Daily', color: 'orange', icon: '⚡', badge: 'primary' },
+            { id: 'anthropic/claude-sonnet-4-6', name: 'Claude Sonnet', provider: 'Anthropic', inputCost: 3.00, outputCost: 15.00, context: '200K', role: 'Fallback 1 · Complex', color: 'blue', icon: '🧠', badge: 'fallback' },
+            { id: 'google/gemini-2.5-flash', name: 'Gemini 2.5 Flash', provider: 'Google', inputCost: 0.075, outputCost: 0.30, context: '1M', role: 'Fallback 2 · Speed', color: 'cyan', icon: '⚡', badge: 'fallback' },
+            { id: 'google/gemini-2.5-pro', name: 'Gemini 2.5 Pro', provider: 'Google', inputCost: 1.25, outputCost: 10.00, context: '2M', role: 'Fallback 3 · Deep', color: 'indigo', icon: '🌐', badge: 'fallback' },
+            { id: 'anthropic/claude-opus-4-6', name: 'Claude Opus', provider: 'Anthropic', inputCost: 15.00, outputCost: 75.00, context: '200K', role: 'Fallback 4 · Heavy', color: 'red', icon: '🏗️', badge: 'fallback' },
+            { id: 'ollama/llama3.2:3b', name: 'Ollama llama3.2', provider: 'Ollama (Local)', inputCost: 0, outputCost: 0, context: '128K', role: 'Last resort · Free', color: 'green', icon: '🖥️', badge: 'local' },
+        ];
+
+        const MAX_COST = 15; // for bar scaling
+
+        async function loadModels() {
+            let activeModel = 'minimax-portal/MiniMax-M2.7';
+            try {
+                const res = await fetch('/api/models');
+                const data = await res.json();
+                if (data.active_model) activeModel = data.active_model;
+            } catch(e) { /* use default */ }
+
+            // ── Fallback chain ──
+            const chainEl = document.getElementById('models-chain');
+            chainEl.innerHTML = MODEL_DEFS.map((m, i) => {
+                const isActive = m.id === activeModel;
+                const ringClass = isActive
+                    ? 'border-2 border-green-400 bg-green-950/60 shadow-lg shadow-green-500/20'
+                    : 'border border-gray-700 bg-gray-800/60 opacity-70';
+                const labelClass = isActive ? 'text-green-300 font-bold' : 'text-gray-300';
+                const activeTag = isActive ? '<span class="block text-xs text-green-400 font-bold mt-0.5 animate-pulse">● Active</span>' : '';
+                const arrow = i < MODEL_DEFS.length - 1
+                    ? `<div class="text-gray-600 flex items-center px-1 text-lg hidden sm:flex">→</div>`
+                    : '';
+                return `
+                    <div class="flex items-center">
+                        <div class="rounded-xl px-4 py-3 text-center min-w-[110px] ${ringClass} transition-all">
+                            <div class="text-2xl mb-1">${m.icon}</div>
+                            <p class="text-xs ${labelClass} leading-tight">${m.name}</p>
+                            <p class="text-[10px] text-gray-600 mt-0.5">${m.provider}</p>
+                            ${activeTag}
+                        </div>
+                        ${arrow}
+                    </div>`;
+            }).join('');
+
+            // ── Cost bars ──
+            const barsEl = document.getElementById('models-cost-bars');
+            barsEl.innerHTML = MODEL_DEFS.map(m => {
+                const pct = m.inputCost === 0 ? 2 : Math.max(2, Math.round((m.inputCost / MAX_COST) * 100));
+                const costLabel = m.inputCost === 0 ? 'Free' : `$${m.inputCost.toFixed(3)}/M`;
+                const isActive = m.id === activeModel;
+                const barColor = m.inputCost === 0 ? 'bg-green-500'
+                    : m.inputCost < 1 ? 'bg-orange-500'
+                    : m.inputCost < 5 ? 'bg-blue-500'
+                    : 'bg-red-500';
+                const activeDot = isActive ? '<span class="text-green-400 text-xs font-bold ml-2 animate-pulse">● Active</span>' : '';
+                return `
+                    <div>
+                        <div class="flex justify-between items-center mb-1 text-xs">
+                            <span class="flex items-center gap-2">
+                                <span class="text-base">${m.icon}</span>
+                                <span class="text-gray-300 font-medium">${m.name}</span>
+                                <span class="text-gray-600">${m.provider}</span>
+                                ${activeDot}
+                            </span>
+                            <span class="${m.inputCost === 0 ? 'text-green-400 font-bold' : 'text-gray-400'}">${costLabel} input</span>
+                        </div>
+                        <div class="w-full bg-gray-800 rounded-full h-4 relative overflow-hidden">
+                            <div class="${barColor} h-4 rounded-full transition-all duration-700" style="width:${pct}%"></div>
+                            ${m.inputCost > 0 ? `<span class="absolute right-2 top-0 h-4 flex items-center text-[10px] text-gray-400">${costLabel}</span>` : ''}
+                        </div>
+                    </div>`;
+            }).join('');
+
+            // ── Table ──
+            const tableEl = document.getElementById('models-table');
+            tableEl.innerHTML = MODEL_DEFS.map(m => {
+                const isActive = m.id === activeModel;
+                const rowClass = isActive ? 'bg-green-950/20' : '';
+                const activeBadge = isActive ? '<span class="ml-1 text-green-400 text-[10px] font-bold bg-green-900/40 px-1.5 py-0.5 rounded-full">Active</span>' : '';
+                const costIn = m.inputCost === 0 ? '<span class="text-green-400 font-bold">Free</span>' : `$${m.inputCost.toFixed(3)}`;
+                const costOut = m.outputCost === 0 ? '<span class="text-green-400 font-bold">Free</span>' : `$${m.outputCost.toFixed(2)}`;
+                const roleColors = { primary: 'text-orange-400', fallback: 'text-blue-400', local: 'text-green-400' };
+                return `
+                    <tr class="hover:bg-gray-800/30 transition-colors ${rowClass}">
+                        <td class="py-3 pr-4">
+                            <div class="flex items-center gap-2">
+                                <span class="text-base">${m.icon}</span>
+                                <div>
+                                    <p class="text-white font-medium">${m.name} ${activeBadge}</p>
+                                    <p class="text-xs text-gray-600 font-mono">${m.id}</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="py-3 pr-4 text-gray-400 text-xs">${m.provider}</td>
+                        <td class="py-3 pr-4 text-right font-mono text-sm">${costIn}</td>
+                        <td class="py-3 pr-4 text-right font-mono text-sm">${costOut}</td>
+                        <td class="py-3 pr-4 text-right text-xs text-gray-400">${m.context}</td>
+                        <td class="py-3 text-center">
+                            <span class="text-xs ${roleColors[m.badge] || 'text-gray-400'}">${m.role}</span>
+                        </td>
+                    </tr>`;
+            }).join('');
+
+            document.getElementById('models-last-updated').innerText = 'Last updated: ' + new Date().toLocaleString();
+        }
+
+        // ─── Memory Tab ─────────────────────────────────────────────────────────────
+
+        let _memoryLoaded = false;
+
+        async function loadMemories() {
+            if (_memoryLoaded) return;
+            _memoryLoaded = true;
+            try {
+                const res = await fetch('/api/memory/daily');
+                const data = await res.json();
+                const entries = (data.entries || []).slice().reverse(); // newest first
+                const pillsEl = document.getElementById('memory-day-pills');
+                pillsEl.innerHTML = '';
+                if (entries.length === 0) {
+                    document.getElementById('memory-day-content').innerHTML =
+                        '<div class="bg-gray-900 rounded-xl p-8 border border-gray-800 text-center text-gray-500">No daily journals found.</div>';
+                    return;
+                }
+                entries.forEach((entry, i) => {
+                    const btn = document.createElement('button');
+                    btn.className = 'flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors ' +
+                        (i === 0 ? 'bg-blue-600 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700');
+                    btn.textContent = entry.date;
+                    btn.onclick = () => {
+                        document.querySelectorAll('#memory-day-pills button').forEach(b => {
+                            b.className = 'flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors bg-gray-800 text-gray-400 hover:bg-gray-700';
+                        });
+                        btn.className = 'flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-colors bg-blue-600 text-white';
+                        loadDayContent(entry.date);
+                    };
+                    pillsEl.appendChild(btn);
+                });
+                if (entries.length > 0) loadDayContent(entries[0].date);
+            } catch (e) {
+                document.getElementById('memory-day-content').innerHTML =
+                    '<div class="bg-red-900/30 rounded-xl p-6 border border-red-800 text-red-400 text-sm">Failed to load memories: ' + e.message + '</div>';
+            }
+        }
+
+        async function loadDayContent(date) {
+            const el = document.getElementById('memory-day-content');
+            el.innerHTML = '<div class="bg-gray-900 rounded-xl p-8 border border-gray-800 text-center text-gray-500">Loading...</div>';
+            try {
+                const res = await fetch('/api/memory/daily/' + date);
+                const data = await res.json();
+                const md = data.content || '';
+                const lines = md.split('\n');
+                let html = '<div class="bg-gray-900 rounded-xl p-6 border border-gray-800">';
+                html += '<div class="flex justify-between items-center mb-4"><h3 class="text-white font-bold">' + date + '</h3></div>';
+                html += '<div class="prose prose-invert max-w-none text-sm text-gray-300 space-y-2 font-mono leading-relaxed overflow-x-auto whitespace-pre-wrap">';
+                html += escapeHtml(md);
+                html += '</div></div>';
+                el.innerHTML = html;
+            } catch (e) {
+                el.innerHTML = '<div class="bg-red-900/30 rounded-xl p-6 border border-red-800 text-red-400 text-sm">Error loading day: ' + e.message + '</div>';
+            }
+        }
+
+        async function searchMemories() {
+            const q = (document.getElementById('memory-search-input').value || '').trim();
+            const resultsEl = document.getElementById('memory-search-results');
+            if (!q) { resultsEl.classList.add('hidden'); return; }
+            resultsEl.classList.remove('hidden');
+            resultsEl.innerHTML = '<p class="text-gray-500 text-sm">Searching...</p>';
+            try {
+                const res = await fetch('/api/memory/search?q=' + encodeURIComponent(q));
+                const data = await res.json();
+                const results = data.results || [];
+                if (results.length === 0) {
+                    resultsEl.innerHTML = '<p class="text-gray-500 text-sm">No results for "' + escapeHtml(q) + '".</p>';
+                    return;
+                }
+                resultsEl.innerHTML = results.map(r =>
+                    '<div class="bg-gray-900 rounded-xl p-4 border border-gray-700">' +
+                    '<p class="text-blue-400 font-bold text-sm mb-2">' + r.date + '</p>' +
+                    r.matches.map(m =>
+                        '<p class="text-gray-400 text-xs font-mono bg-black rounded px-3 py-2 mb-1">' + escapeHtml(m.line) + '</p>'
+                    ).join('') +
+                    '<button onclick="loadDayContent(\'' + r.date + '\')" class="text-xs text-blue-400 hover:text-blue-300 mt-2">View full entry →</button>' +
+                    '</div>'
+                ).join('');
+            } catch (e) {
+                resultsEl.innerHTML = '<p class="text-red-400 text-sm">Search error: ' + e.message + '</p>';
+            }
+        }
+
+        async function showLongTermMemory() {
+            document.getElementById('memory-ltm-modal').classList.remove('hidden');
+            const el = document.getElementById('ltm-modal-content');
+            el.innerHTML = '<p class="text-gray-500 text-sm">Loading long-term memory...</p>';
+            try {
+                const res = await fetch('/api/memory/longterm');
+                const data = await res.json();
+                const sections = data.sections || [];
+                el.innerHTML = sections.map(s =>
+                    '<div class="bg-gray-800 rounded-lg p-4 border border-gray-700">' +
+                    '<h4 class="text-white font-bold text-sm mb-2">' + escapeHtml(s.title) + '</h4>' +
+                    '<pre class="text-gray-300 text-xs leading-relaxed whitespace-pre-wrap font-mono">' + escapeHtml(s.content.trim()) + '</pre>' +
+                    '</div>'
+                ).join('') || '<p class="text-gray-500 text-sm">No long-term memory found.</p>';
+            } catch (e) {
+                el.innerHTML = '<p class="text-red-400 text-sm">Error: ' + e.message + '</p>';
+            }
+        }
+
+        function hideLongTermMemory() {
+            document.getElementById('memory-ltm-modal').classList.add('hidden');
+        }
+
+        function escapeHtml(str) {
+            return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        }
+
+        // Initialize
+        fetchTasks();
+        loadDashboard();
+        connectSSE();
+    </script>
+</body>
+</html>
