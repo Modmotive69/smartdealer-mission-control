@@ -481,6 +481,116 @@ def unsubscribe_get():
     <a href="https://smartdealer.com" style="color:#4361ee;">← Back to SmartDealer</a>
     </div></body></html>"""
 
+# ─── Memory / Journal API ──────────────────────────────────────────────────────
+
+MEMORY_DIR = '/Users/scottanderson/.openclaw/workspace/memory'
+LONGTIME_FILE = '/Users/scottanderson/.openclaw/workspace/MEMORY.md'
+
+def parse_daily_entry(filepath):
+    """Parse a daily memory file into structured data."""
+    try:
+        with open(filepath) as f:
+            content = f.read()
+        basename = os.path.basename(filepath)
+        date_str = basename.replace('.md', '')
+        # Extract title / first heading
+        lines = content.strip().split('\n')
+        title = date_str
+        summary = ''
+        for line in lines:
+            if line.startswith('## '):
+                title = line.replace('## ', '').strip()
+                break
+        # Get first non-heading paragraph
+        in_summary = False
+        for line in lines:
+            if line.startswith('## '):
+                in_summary = True
+                continue
+            if in_summary and line.strip() and not line.startswith('#'):
+                summary = line.strip()[:200]
+                break
+        return {
+            'date': date_str,
+            'title': title,
+            'summary': summary,
+            'has_content': len(content) > 50
+        }
+    except Exception as e:
+        return {'date': os.path.basename(filepath), 'title': 'Error', 'summary': str(e), 'has_content': False}
+
+@app.route('/api/memory/daily')
+def memory_daily_list():
+    """List all daily memory entries."""
+    entries = []
+    if os.path.isdir(MEMORY_DIR):
+        for fname in sorted(os.listdir(MEMORY_DIR)):
+            if fname.endswith('.md'):
+                entry = parse_daily_entry(os.path.join(MEMORY_DIR, fname))
+                entries.append(entry)
+    return jsonify({'entries': entries})
+
+@app.route('/api/memory/daily/<date_str>')
+def memory_daily_entry(date_str):
+    """Get full content for a specific day."""
+    fpath = os.path.join(MEMORY_DIR, date_str + '.md')
+    if not os.path.exists(fpath):
+        return jsonify({'error': 'Not found'}), 404
+    with open(fpath) as f:
+        content = f.read()
+    entry = parse_daily_entry(fpath)
+    entry['content'] = content
+    return jsonify(entry)
+
+@app.route('/api/memory/longterm')
+def memory_longterm():
+    """Get long-term memory (MEMORY.md)."""
+    if not os.path.exists(LONGTIME_FILE):
+        return jsonify({'error': 'Not found'}), 404
+    with open(LONGTIME_FILE) as f:
+        content = f.read()
+    # Extract sections
+    sections = []
+    current = {'title': 'Overview', 'content': ''}
+    for line in content.split('\n'):
+        if line.startswith('## '):
+            if current['content']:
+                sections.append(current)
+            current = {'title': line.replace('## ', '').strip(), 'content': ''}
+        else:
+            current['content'] += line + '\n'
+    if current['content']:
+        sections.append(current)
+    return jsonify({'content': content, 'sections': sections})
+
+@app.route('/api/memory/search')
+def memory_search():
+    """Search across all memory files."""
+    query = request.args.get('q', '').strip().lower()
+    if not query:
+        return jsonify({'results': []})
+    results = []
+    if os.path.isdir(MEMORY_DIR):
+        for fname in sorted(os.listdir(MEMORY_DIR)):
+            if fname.endswith('.md'):
+                fpath = os.path.join(MEMORY_DIR, fname)
+                with open(fpath) as f:
+                    content = f.read()
+                if query in content.lower():
+                    # Find context around matches
+                    lines = content.lower().split('\n')
+                    matches = []
+                    for i, line in enumerate(lines):
+                        if query in line:
+                            orig_line = content.split('\n')[i]
+                            context = orig_line.strip()[:150]
+                            matches.append({'line': context, 'line_num': i})
+                    results.append({
+                        'date': fname.replace('.md', ''),
+                        'matches': matches[:5]
+                    })
+    return jsonify({'query': query, 'results': results})
+
 # ─── Start ───────────────────────────────────────────────────────────────────
 
 if __name__ == '__main__':
