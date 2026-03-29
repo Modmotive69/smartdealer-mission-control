@@ -591,6 +591,47 @@ if(localStorage.getItem("mc_ok")==="1"){
                     <div id="ltm-modal-content" class="p-6 space-y-4 max-h-[80vh] overflow-y-auto"></div>
                 </div>
             </div>
+        <div id="tab-memory" class="tab-content max-w-6xl mx-auto hidden">
+            <header class="mb-8">
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <h2 class="text-2xl font-bold text-white">Memory &amp; Journals</h2>
+                        <p class="text-sm text-gray-400 mt-1">Every conversation, organized by day. Searchable. Permanent.</p>
+                    </div>
+                    <div class="flex gap-3">
+                        <div class="relative">
+                            <input type="text" id="memory-search-input" placeholder="Search..." 
+                                class="bg-gray-900 border border-gray-700 text-gray-300 text-sm rounded-lg px-4 py-2 pl-10 w-64 focus:border-blue-500 focus:outline-none"
+                                onkeydown="if(event.key==='\''Enter'\''){searchMemories();return false;}">
+                            <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-xs"></i>
+                        </div>
+                        <button onclick="showLongTermMemory()" class="bg-blue-900/50 hover:bg-blue-900 text-blue-400 text-sm font-bold py-2 px-4 rounded transition-colors">Long-Term Memory</button>
+                    </div>
+                </div>
+                <div id="memory-longterm-banner" class="hidden bg-gradient-to-r from-blue-900/30 to-purple-900/30 rounded-xl p-4 border border-blue-800/50 mb-6">
+                    <div class="flex justify-between items-center mb-3">
+                        <div><h3 class="text-blue-400 font-bold text-sm">Long-Term Memory</h3><p class="text-xs text-gray-400 mt-1">Curated knowledge from all sessions</p></div>
+                        <button onclick="hideLongTermMemory()" class="text-gray-500 hover:text-white text-xs">Close</button>
+                    </div>
+                    <div id="ltm-content" class="space-y-3 max-h-96 overflow-y-auto"></div>
+                </div>
+                <div id="memory-search-results" class="hidden space-y-4 mb-6"></div>
+            </header>
+            <div id="memory-day-pills" class="flex gap-2 overflow-x-auto pb-4 mb-6" style="scrollbar-width:none;"></div>
+            <div id="memory-day-content">
+                <div class="bg-gray-900 rounded-xl p-8 border border-gray-800 text-center text-gray-500">
+                    Select a day from above to view memories.
+                </div>
+            </div>
+            <div id="memory-ltm-modal" class="hidden fixed inset-0 bg-black/80 z-50 overflow-y-auto" onclick="if(event.target===this)hideLongTermMemory()">
+                <div class="bg-gray-900 rounded-xl max-w-4xl mx-auto my-8 border border-gray-700">
+                    <div class="sticky top-0 bg-gray-900 border-b border-gray-800 px-6 py-4 flex justify-between items-center">
+                        <h3 class="text-white font-bold text-lg">Long-Term Memory</h3>
+                        <button onclick="hideLongTermMemory()" class="text-gray-500 hover:text-white text-xl">x</button>
+                    </div>
+                    <div id="ltm-modal-content" class="p-6 space-y-4 max-h-[80vh] overflow-y-auto"></div>
+                </div>
+            </div>
         </div>
 
         <!-- FOOTER -->
