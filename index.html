@@ -918,7 +918,7 @@ if(localStorage.getItem("mc_ok")==="1"){
                     <div class="bg-red-950 border-2 border-red-500 rounded-xl px-6 py-3 text-center mb-2 relative">
                         <div class="absolute -top-2 left-1/2 transform -translate-x-1/2 bg-red-600 text-white text-xs px-2 py-0.5 rounded-full font-bold">LEAD AGENT</div>
                         <p class="text-base font-extrabold text-white mt-1">🐧 PenPen</p>
-                        <p class="text-xs text-red-400 font-mono">claude-sonnet-4-6</p>
+                        <p class="text-xs text-red-400 font-mono">MiniMax-M2.7 (primary) · Opus (code)</p>
                         <p class="text-xs text-gray-500 mt-1">Strategy · Decisions · Revenue</p>
                     </div>
 
@@ -999,9 +999,10 @@ if(localStorage.getItem("mc_ok")==="1"){
 
                     <!-- Legend -->
                     <div class="flex gap-6 mt-8 text-xs text-gray-500">
-                        <span class="flex items-center gap-1"><span class="w-3 h-px bg-green-400 inline-block"></span> Free (local)</span>
+                        <span class="flex items-center gap-1"><span class="w-3 h-px bg-green-400 inline-block"></span> Free (local Ollama)</span>
                         <span class="flex items-center gap-1"><span class="w-3 h-px bg-purple-400 inline-block"></span> Haiku (API ~free)</span>
-                        <span class="flex items-center gap-1"><span class="w-3 h-px bg-red-500 inline-block"></span> Sonnet (API)</span>
+                        <span class="flex items-center gap-1"><span class="w-3 h-px bg-red-500 inline-block"></span> MiniMax M2.7 (primary)</span>
+                        <span class="flex items-center gap-1"><span class="w-3 h-px bg-amber-400 inline-block"></span> Opus (code reviews)</span>
                     </div>
                 </div>
             </div>
@@ -1016,13 +1017,39 @@ if(localStorage.getItem("mc_ok")==="1"){
                         <div class="w-12 h-12 rounded-full bg-red-600 flex items-center justify-center text-2xl">🐧</div>
                         <div>
                             <h3 class="text-base font-bold text-white">PenPen</h3>
-                            <p class="text-xs text-gray-500 font-mono">anthropic/claude-sonnet-4-6</p>
+                            <p class="text-xs text-gray-500 font-mono">minimax-portal/MiniMax-M2.7</p>
                         </div>
                     </div>
                     <p class="text-xs text-gray-400 mb-3">Strategy, revenue decisions, complex reasoning, Scott's direct chat.</p>
+                    <div class="space-y-1 mb-3">
+                        <div class="flex items-center justify-between text-[10px]">
+                            <span class="text-gray-500">Primary:</span>
+                            <span class="text-white font-mono">MiniMax-M2.7</span>
+                            <span class="text-green-400">$0.30/1M in · $1.20/1M out</span>
+                        </div>
+                        <div class="flex items-center justify-between text-[10px]">
+                            <span class="text-gray-500">Code/Review:</span>
+                            <span class="text-white font-mono">Claude Opus 4</span>
+                            <span class="text-amber-400">on-demand</span>
+                        </div>
+                        <div class="flex items-center justify-between text-[10px]">
+                            <span class="text-gray-500">Fallback 1:</span>
+                            <span class="text-white font-mono">Gemini 2.5 Flash</span>
+                            <span class="text-gray-500">auto</span>
+                        </div>
+                        <div class="flex items-center justify-between text-[10px]">
+                            <span class="text-gray-500">Fallback 2:</span>
+                            <span class="text-white font-mono">Gemini 2.5 Pro</span>
+                            <span class="text-gray-500">auto</span>
+                        </div>
+                        <div class="flex items-center justify-between text-[10px]">
+                            <span class="text-gray-500">Local:</span>
+                            <span class="text-white font-mono">Ollama llama3.2:3b</span>
+                            <span class="text-green-400">free · always on</span>
+                        </div>
+                    </div>
                     <div class="flex items-center justify-between text-xs">
-                        <span class="flex items-center gap-1 text-green-400"><span class="w-1.5 h-1.5 rounded-full bg-green-400 inline-block"></span> Online · API</span>
-                        <span class="text-gray-600">~$0.003/msg</span>
+                        <span class="flex items-center gap-1 text-green-400"><span class="w-1.5 h-1.5 rounded-full bg-green-400 inline-block"></span> Online · 5-model fallback chain</span>
                     </div>
                 </div>
 
@@ -1104,7 +1131,7 @@ if(localStorage.getItem("mc_ok")==="1"){
                 <h3 class="text-sm font-bold text-gray-300 uppercase tracking-wider mb-4">Assign Task to Agent</h3>
                 <div class="flex gap-3">
                     <select id="assign-agent" class="bg-black border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-red-500">
-                        <option value="PenPen">PenPen (Sonnet)</option>
+                        <option value="PenPen">PenPen (MiniMax / Opus)</option>
                         <option value="Scout">Scout (Local)</option>
                         <option value="Sentry">Sentry (Haiku)</option>
                         <option value="Scribe">Scribe (Local)</option>
