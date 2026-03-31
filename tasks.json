@@ -1,0 +1,16 @@
+{
+  "tasks": [
+    {"id": "1", "desc": "Create and upload logos for EPIC and ACCESS products", "status": "todo", "priority": "high", "created": "2026-03-24"},
+    {"id": "2", "desc": "Set up Smith.ai receptionist service — upload PartSites FAQ to knowledge base", "status": "todo", "priority": "medium", "created": "2026-03-24"},
+    {"id": "3", "desc": "Get all logins from Edgar and store in Knowledge Base", "status": "todo", "priority": "high", "created": "2026-03-24"},
+    {"id": "4", "desc": "Follow up with SimplePart customers hit by 15% price hike — PartSites migration pitch", "status": "todo", "priority": "high", "created": "2026-03-29"},
+    {"id": "5", "desc": "Schedule ENGAGE360 demo with Riverside Hyundai", "status": "todo", "priority": "medium", "created": "2026-03-29"},
+    {"id": "6", "desc": "Confirm PartSites public pricing and phone number (800-915-3353)", "status": "todo", "priority": "medium", "created": "2026-03-24"},
+    {"id": "7", "desc": "Provide direct mobile number for Smith.ai live transfer", "status": "todo", "priority": "medium", "created": "2026-03-24"},
+    {"id": "8", "desc": "Install Tailscale on Mac Mini and Laptop", "status": "done", "priority": "high", "created": "2026-03-20"},
+    {"id": "9", "desc": "Install TeamViewer on Mac Mini", "status": "done", "priority": "medium", "created": "2026-03-20"},
+    {"id": "10", "desc": "Set up OpenClaw on Mac Mini", "status": "done", "priority": "high", "created": "2026-03-16"},
+    {"id": "11", "desc": "Configure HubSpot integration", "status": "done", "priority": "high", "created": "2026-03-20"},
+    {"id": "12", "desc": "Build Mission Control dashboard", "status": "done", "priority": "high", "created": "2026-03-24"}
+  ]
+}

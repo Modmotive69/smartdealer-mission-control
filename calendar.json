@@ -1,0 +1,10 @@
+{
+  "events": [
+    {"id": "ev-newsletter-weekly", "title": "Dealer Headline News — Newsletter Draft", "date": "2026-04-03", "time": "09:00", "type": "recurring", "description": "Weekly newsletter draft for external dealer audience (Apollo leads)", "color": "#3b82f6", "recurring": "weekly-thu", "created": "2026-03-31T13:55:00"},
+    {"id": "ev-staff-briefing", "title": "Staff Daily Briefing (Auto-send 8AM)", "date": "2026-03-31", "time": "08:00", "type": "recurring", "description": "Automated daily industry intel + status briefing to 9 staff members", "color": "#10b981", "recurring": "weekdays", "created": "2026-03-31T13:55:00"},
+    {"id": "ev-sonnet-ratelimit", "title": "Claude Sonnet 4 Rate Limit Expires", "date": "2026-04-01", "time": "", "type": "milestone", "description": "Re-enable Sonnet as model option after rate limit period ends", "color": "#8b5cf6", "recurring": "", "created": "2026-03-31T13:55:00"},
+    {"id": "ev-simplepart-outreach", "title": "SimplePart Price Hike Outreach — PartSites Migration", "date": "2026-04-01", "time": "10:00", "type": "task", "description": "Contact dealers affected by SimplePart 15% price increase with PartSites migration pitch", "color": "#ef4444", "recurring": "", "created": "2026-03-31T13:55:00"},
+    {"id": "ev-scout-daily", "title": "Scout Daily Research Digest (Auto 8AM)", "date": "2026-03-31", "time": "08:00", "type": "recurring", "description": "Daily industry intel briefing from Scout agent", "color": "#f59e0b", "recurring": "weekdays", "created": "2026-03-31T16:00:00"},
+    {"id": "ev-journal-compiler", "title": "Daily Journal Compiler (11:55PM)", "date": "2026-03-31", "time": "23:55", "type": "recurring", "description": "Compiles daily journal entry from all session activity", "color": "#6366f1", "recurring": "daily", "created": "2026-03-31T16:00:00"}
+  ]
+}
