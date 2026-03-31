@@ -239,6 +239,14 @@ if(localStorage.getItem("mc_ok")==="1"){
                         <div class="flex justify-between"><span>Journal Compiler</span><span class="text-gray-300">Daily @ 11:55 PM</span></div>
                         <div class="flex justify-between"><span>Email Check</span><span class="text-gray-300">On heartbeat</span></div>
                         <div class="flex justify-between"><span>Mission Control</span><span class="text-green-400">Live · Real-time SSE</span></div>
+                        <div class="flex justify-between items-center border-t border-gray-800 pt-2 mt-2">
+                            <span class="flex items-center gap-1"><i class="fa-brands fa-github text-gray-500"></i> GitHub Sync</span>
+                            <span id="dash-sync-status" class="text-gray-500 text-xs">Checking...</span>
+                        </div>
+                        <div class="flex justify-between text-[10px] text-gray-600">
+                            <span>Last synced:</span>
+                            <span id="dash-sync-time">—</span>
+                        </div>
                     </div>
                 </div>
 
@@ -2455,6 +2463,29 @@ if(localStorage.getItem("mc_ok")==="1"){
             } catch(e) { console.error('Dashboard token error', e); }
         }
 
+        // GitHub Sync Status
+        async function loadSyncStatus() {
+            try {
+                const res = await fetch('/api/sync-status');
+                const d = await res.json();
+                const el = document.getElementById('dash-sync-status');
+                const timeEl = document.getElementById('dash-sync-time');
+                if (!el) return;
+                if (d.status === 'ok' && d.last_sync) {
+                    const dt = new Date(d.last_sync);
+                    const minsAgo = Math.round((Date.now() - dt.getTime()) / 60000);
+                    const label = minsAgo < 2 ? 'just now' : minsAgo < 60 ? minsAgo + 'm ago' : Math.round(minsAgo/60) + 'h ago';
+                    el.innerHTML = '<span class="text-green-400">✓ Synced · ' + label + '</span>';
+                    if (timeEl) timeEl.textContent = dt.toLocaleTimeString('en-US', {hour:'numeric',minute:'2-digit'}) + ' · ' + (d.commit_sha || '');
+                } else {
+                    el.innerHTML = '<span class="text-yellow-400">⚠ Never synced</span>';
+                }
+            } catch(e) {
+                const el = document.getElementById('dash-sync-status');
+                if (el) el.innerHTML = '<span class="text-red-400">✗ Error</span>';
+            }
+        }
+
         // Real-time SSE updates
         function connectSSE() {
             const es = new EventSource('/api/events');
@@ -3166,6 +3197,10 @@ if(localStorage.getItem("mc_ok")==="1"){
                 alert('Error deleting: ' + e.message);
             }
         }
+
+        // Initialize sync status polling (every 60s)
+        loadSyncStatus();
+        setInterval(loadSyncStatus, 60000);
 
         // Initialize
         fetchTasks();
