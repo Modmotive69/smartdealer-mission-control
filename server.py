@@ -591,6 +591,62 @@ def memory_search():
                     })
     return jsonify({'query': query, 'results': results})
 
+# ─── Memory Status ───────────────────────────────────────────────────────────
+
+@app.route('/api/memory-status')
+def memory_status():
+    """Return memory & dreaming system status."""
+    import sqlite3
+    result = {
+        'files_indexed': 0, 'chunks': 0, 'recall_entries': 0,
+        'dreaming_enabled': False, 'next_sweep': '3:00 AM ET',
+        'workspace_files': 0
+    }
+    # Count workspace memory files
+    mem_dir = os.path.join(BASE_DIR, 'memory')
+    if os.path.isdir(mem_dir):
+        result['workspace_files'] = len([f for f in os.listdir(mem_dir) if f.endswith('.md')])
+    # Count key workspace files
+    for f in ['MEMORY.md', 'WORKING_CONTEXT.md', 'MISTAKES.md', 'PROJECTS.md']:
+        if os.path.exists(os.path.join(BASE_DIR, f)):
+            result['workspace_files'] += 1
+    # Read SQLite memory store
+    db_path = os.path.expanduser('~/.openclaw/memory/main.sqlite')
+    if os.path.exists(db_path):
+        try:
+            conn = sqlite3.connect(db_path, timeout=2)
+            cur = conn.cursor()
+            cur.execute("SELECT COUNT(*) FROM files")
+            result['files_indexed'] = cur.fetchone()[0]
+            cur.execute("SELECT COUNT(*) FROM chunks")
+            result['chunks'] = cur.fetchone()[0]
+            conn.close()
+        except:
+            pass
+    # Read recall store
+    recall_path = os.path.join(BASE_DIR, 'memory', '.dreams', 'short-term-recall.json')
+    if os.path.exists(recall_path):
+        try:
+            with open(recall_path) as f:
+                recall = json.load(f)
+            result['recall_entries'] = len(recall) if isinstance(recall, list) else len(recall.get('entries', []))
+        except:
+            pass
+    # Check dreaming config
+    oc_config = os.path.expanduser('~/.openclaw/openclaw.json')
+    if os.path.exists(oc_config):
+        try:
+            with open(oc_config) as f:
+                cfg = json.load(f)
+            dreaming = cfg.get('plugins', {}).get('entries', {}).get('memory-core', {}).get('config', {}).get('dreaming', {})
+            result['dreaming_enabled'] = dreaming.get('enabled', False)
+            freq = dreaming.get('frequency', '0 3 * * *')
+            tz = dreaming.get('timezone', 'UTC')
+            result['next_sweep'] = f"{freq} ({tz})"
+        except:
+            pass
+    return jsonify(result)
+
 # ─── Start ───────────────────────────────────────────────────────────────────
 
 if __name__ == '__main__':
