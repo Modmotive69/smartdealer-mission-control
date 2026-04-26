@@ -1,6 +1,6 @@
 {
   "tasks": [
-    {"id": "1", "desc": "Create and upload logos for EPIC and ACCESS products", "status": "todo", "priority": "high", "created": "2026-03-24"},
+    {"id": "1", "desc": "Create and upload logos for EPIC and ACCESS products", "status": "done", "priority": "high", "created": "2026-03-24"},
     {"id": "2", "desc": "Set up Smith.ai receptionist service — upload PartSites FAQ to knowledge base", "status": "todo", "priority": "medium", "created": "2026-03-24"},
     {"id": "3", "desc": "Get all logins from Edgar and store in Knowledge Base", "status": "todo", "priority": "high", "created": "2026-03-24"},
     {"id": "4", "desc": "Follow up with SimplePart customers hit by 15% price hike — PartSites migration pitch", "status": "todo", "priority": "high", "created": "2026-03-29"},
