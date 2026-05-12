@@ -1,0 +1,441 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>🎡 Wheel Strategy — Mission Control</title>
+<style>
+  :root {
+    --bg: #0c0e14;
+    --panel: #161922;
+    --panel-2: #1d2230;
+    --border: #2a3142;
+    --text: #e6e9ef;
+    --muted: #8b93a7;
+    --accent: #4cc9f0;
+    --good: #10b981;
+    --bad: #ef4444;
+    --warn: #f59e0b;
+    --purple: #a78bfa;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif;
+    margin: 0;
+    padding: 20px;
+    font-size: 14px;
+  }
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  header h1 { margin: 0; font-size: 22px; font-weight: 600; }
+  header .meta { font-size: 12px; color: var(--muted); }
+  .mode-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    background: var(--warn);
+    color: #000;
+    margin-left: 10px;
+  }
+  .grid {
+    display: grid;
+    gap: 16px;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    margin-bottom: 20px;
+  }
+  .card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+  }
+  .card h2 {
+    margin: 0 0 12px 0;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--muted);
+    font-weight: 600;
+  }
+  .stat { font-size: 28px; font-weight: 700; line-height: 1.1; }
+  .stat-sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
+  .good { color: var(--good); }
+  .bad { color: var(--bad); }
+  .warn { color: var(--warn); }
+  .accent { color: var(--accent); }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+  th, td {
+    padding: 8px 10px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  th { color: var(--muted); font-weight: 500; text-transform: uppercase; font-size: 11px; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover { background: var(--panel-2); }
+  .full-row {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  .full-row h2 {
+    margin: 0 0 12px 0;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--muted);
+  }
+  .refresh-btn {
+    background: var(--panel-2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+  }
+  .refresh-btn:hover { background: var(--border); }
+  pre {
+    background: var(--bg);
+    padding: 10px;
+    border-radius: 6px;
+    overflow-x: auto;
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .pill {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    background: var(--panel-2);
+    color: var(--muted);
+  }
+  .pill.good { background: rgba(16, 185, 129, 0.15); color: var(--good); }
+  .pill.bad  { background: rgba(239, 68, 68, 0.15);  color: var(--bad);  }
+  .pill.warn { background: rgba(245, 158, 11, 0.15); color: var(--warn); }
+  .footer-note {
+    margin-top: 24px;
+    padding: 14px 16px;
+    background: rgba(245, 158, 11, 0.08);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    border-radius: 6px;
+    color: var(--warn);
+    font-size: 12px;
+  }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  .empty { color: var(--muted); font-style: italic; padding: 8px 0; }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>🎡 Wheel Strategy Dashboard <span class="mode-badge" id="modeBadge">PAPER</span></h1>
+    <div class="meta">Tracking performance, calibration, and the learning loop</div>
+  </div>
+  <div>
+    <button class="refresh-btn" onclick="loadAll()">↻ Refresh</button>
+    <span class="meta" id="lastUpdated"></span>
+  </div>
+</header>
+
+<!-- Top KPI strip -->
+<div class="grid" id="kpis">
+  <div class="card">
+    <h2>Mode</h2>
+    <div class="stat warn" id="kpiMode">—</div>
+    <div class="stat-sub">live trading is gated behind config + WHEEL_LIVE env var</div>
+  </div>
+  <div class="card">
+    <h2>Open Positions</h2>
+    <div class="stat accent" id="kpiOpen">—</div>
+    <div class="stat-sub" id="kpiOpenSub">CSP / Assigned / CC</div>
+  </div>
+  <div class="card">
+    <h2>Closed Trades (paper)</h2>
+    <div class="stat" id="kpiClosed">—</div>
+    <div class="stat-sub" id="kpiClosedSub">— win rate</div>
+  </div>
+  <div class="card">
+    <h2>Journal Entries</h2>
+    <div class="stat" id="kpiJournal">—</div>
+    <div class="stat-sub" id="kpiJournalSub">— simulated / — submitted / — blocked</div>
+  </div>
+</div>
+
+<!-- Backtest / Sweep -->
+<div class="grid">
+  <div class="card">
+    <h2>Latest Backtest</h2>
+    <div id="backtestBlock">Loading…</div>
+  </div>
+  <div class="card">
+    <h2>Latest Multi-Name Sweep</h2>
+    <div id="sweepBlock">Loading…</div>
+  </div>
+  <div class="card">
+    <h2>Learning Loop</h2>
+    <div id="learningBlock">Loading…</div>
+  </div>
+</div>
+
+<!-- Open positions -->
+<div class="full-row">
+  <h2>📍 Open Wheel Positions</h2>
+  <div id="positionsBlock">Loading…</div>
+</div>
+
+<!-- Recent journal -->
+<div class="full-row">
+  <h2>📒 Recent Journal (last 50)</h2>
+  <div id="journalBlock">Loading…</div>
+</div>
+
+<!-- Active config snapshot -->
+<div class="full-row">
+  <h2>⚙️ Active Config (read-only)</h2>
+  <div id="configBlock">Loading…</div>
+</div>
+
+<div class="footer-note">
+  ⚠️ This dashboard is for monitoring only. To change strategy parameters,
+  edit <code>scripts/skills/wheel-strategy/config.yaml</code> directly.
+  Re-calibration runs weekly (Saturday 8 AM ET) and proposes threshold tweaks
+  to Scott via Telegram — never auto-applies.
+</div>
+
+<script>
+const fmt = {
+  pct(v, digits = 2) {
+    if (v == null || isNaN(v)) return '—';
+    const cls = v > 0 ? 'good' : v < 0 ? 'bad' : '';
+    return `<span class="${cls}">${v >= 0 ? '+' : ''}${Number(v).toFixed(digits)}%</span>`;
+  },
+  money(v) {
+    if (v == null || isNaN(v)) return '—';
+    return '$' + Number(v).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  },
+  time(iso) {
+    if (!iso) return '—';
+    return new Date(iso).toLocaleString('en-US', { dateStyle: 'short', timeStyle: 'short' });
+  },
+};
+
+async function fetchJSON(url) {
+  try {
+    const r = await fetch(url);
+    if (!r.ok) return { _error: `HTTP ${r.status}` };
+    return await r.json();
+  } catch (e) {
+    return { _error: e.message };
+  }
+}
+
+async function loadSummary() {
+  const s = await fetchJSON('/api/wheel/summary');
+  if (s._error) { document.getElementById('kpiMode').textContent = 'ERR'; return; }
+
+  document.getElementById('kpiMode').textContent = s.mode || 'UNKNOWN';
+  document.getElementById('modeBadge').textContent = s.mode || 'UNKNOWN';
+
+  const open = (s.open_positions || []).length;
+  document.getElementById('kpiOpen').textContent = open;
+  if (open) {
+    const states = {};
+    s.open_positions.forEach(p => { states[p.state] = (states[p.state] || 0) + 1; });
+    document.getElementById('kpiOpenSub').textContent =
+      Object.entries(states).map(([k, v]) => `${v} ${k}`).join(' · ') || 'no breakdown';
+  }
+
+  const j = s.journal || {};
+  document.getElementById('kpiJournal').textContent = j.total_entries ?? 0;
+  document.getElementById('kpiJournalSub').innerHTML =
+    `${j.simulated || 0} simulated · ${j.submitted || 0} submitted · ${j.blocked_or_failed || 0} blocked`;
+
+  // Backtest
+  const bt = s.latest_backtest;
+  const btEl = document.getElementById('backtestBlock');
+  if (!bt) {
+    btEl.innerHTML = '<div class="empty">No backtest results yet.</div>';
+  } else {
+    btEl.innerHTML = `
+      <div><strong>${bt.ticker}</strong> <span class="pill">${bt.start_date} → ${bt.end_date}</span></div>
+      <table style="margin-top:10px">
+        <tr><td>Total return</td><td>${fmt.pct(bt.total_return_pct)}</td></tr>
+        <tr><td>Sharpe</td><td>${bt.sharpe_annualized?.toFixed?.(2) ?? '—'}</td></tr>
+        <tr><td>Max drawdown</td><td>${fmt.pct(bt.max_drawdown_pct)}</td></tr>
+        <tr><td>Win rate</td><td>${bt.win_rate_pct}%</td></tr>
+        <tr><td>Assignments / Called away</td><td>${bt.assignments ?? '—'} / ${bt.called_away ?? '—'}</td></tr>
+      </table>
+    `;
+  }
+
+  // Sweep
+  const sw = s.latest_sweep;
+  const swEl = document.getElementById('sweepBlock');
+  if (!sw) {
+    swEl.innerHTML = '<div class="empty">No multi-name sweep yet. Run: <code>python3 run.py sweep</code></div>';
+  } else {
+    const rows = (sw.per_ticker || sw.results || []).slice(0, 10);
+    swEl.innerHTML = `
+      <div class="meta" style="margin-bottom:8px">${sw.start_date || ''} → ${sw.end_date || ''}</div>
+      <table>
+        <tr><th>Ticker</th><th>Return</th><th>Sharpe</th><th>Max DD</th><th>Win%</th></tr>
+        ${rows.map(r => `
+          <tr>
+            <td><strong>${r.ticker}</strong></td>
+            <td>${fmt.pct(r.total_return_pct)}</td>
+            <td>${r.sharpe_annualized?.toFixed?.(2) ?? '—'}</td>
+            <td>${fmt.pct(r.max_drawdown_pct)}</td>
+            <td>${r.win_rate_pct ?? '—'}%</td>
+          </tr>
+        `).join('')}
+      </table>
+    `;
+  }
+
+  // Positions
+  const posEl = document.getElementById('positionsBlock');
+  if (open === 0) {
+    posEl.innerHTML = '<div class="empty">No open wheel positions. Run paper-trade cycle to open new CSPs.</div>';
+  } else {
+    posEl.innerHTML = `
+      <table>
+        <tr><th>Ticker</th><th>State</th><th>Strike</th><th>DTE</th><th>Entry Credit</th><th>Entry Δ</th><th>Notes</th></tr>
+        ${s.open_positions.map(p => `
+          <tr>
+            <td><strong>${p.ticker || '—'}</strong></td>
+            <td><span class="pill">${p.state || '—'}</span></td>
+            <td>$${p.strike ?? '—'}</td>
+            <td>${p.dte ?? '—'}</td>
+            <td>${fmt.money(p.entry_credit)}</td>
+            <td>${p.entry_delta?.toFixed?.(3) ?? '—'}</td>
+            <td>${p.notes || ''}</td>
+          </tr>
+        `).join('')}
+      </table>
+    `;
+  }
+}
+
+async function loadCalibration() {
+  const c = await fetchJSON('/api/wheel/calibration');
+  const el = document.getElementById('learningBlock');
+  if (c._error) { el.innerHTML = `<div class="bad">Error: ${c._error}</div>`; return; }
+
+  const cls = c.closed_trades || 0;
+  document.getElementById('kpiClosed').textContent = cls;
+  document.getElementById('kpiClosedSub').innerHTML =
+    c.win_rate_pct != null ? `<span class="good">${c.win_rate_pct}% win rate</span>` : '— win rate';
+
+  const progress = Math.min(100, (cls / 30) * 100);
+  el.innerHTML = `
+    <div>Closed trades: <strong>${cls}</strong> / 30 needed for re-calibration</div>
+    <div style="background:var(--panel-2); height:8px; border-radius:4px; margin:10px 0; overflow:hidden">
+      <div style="background:var(--accent); height:100%; width:${progress}%; transition:width 0.3s"></div>
+    </div>
+    <div class="meta">${c.recommendation}</div>
+    <div style="margin-top:10px" class="pill ${cls >= 30 ? 'good' : 'warn'}">
+      ${cls >= 30 ? '✓ ready to calibrate' : '⏳ gathering data'}
+    </div>
+  `;
+}
+
+async function loadTrades() {
+  const t = await fetchJSON('/api/wheel/trades');
+  const el = document.getElementById('journalBlock');
+  if (t._error || !t.trades || !t.trades.length) {
+    el.innerHTML = '<div class="empty">No journal entries yet.</div>';
+    return;
+  }
+  const rows = t.trades.slice(-50).reverse();
+  el.innerHTML = `
+    <table>
+      <tr><th>Time</th><th>Action</th><th>Underlying</th><th>Contract</th><th>Reason</th></tr>
+      ${rows.map(r => {
+        const action = r.action || '—';
+        const cls = action === 'simulated' ? 'warn'
+                  : action === 'submitted' ? 'good'
+                  : action.startsWith('blocked') || action.startsWith('submit_failed') ? 'bad' : '';
+        return `
+          <tr>
+            <td>${fmt.time(r.ts || r.timestamp)}</td>
+            <td><span class="pill ${cls}">${action}</span></td>
+            <td><strong>${r.underlying || '—'}</strong></td>
+            <td style="font-family:monospace; font-size:11px">${r.occ_symbol || '—'}</td>
+            <td style="color:var(--muted)">${r.reason || ''}</td>
+          </tr>
+        `;
+      }).join('')}
+    </table>
+  `;
+}
+
+async function loadConfig() {
+  const c = await fetchJSON('/api/wheel/config');
+  const el = document.getElementById('configBlock');
+  if (c._error) { el.innerHTML = `<div class="bad">Error: ${c._error}</div>`; return; }
+
+  const safety = `
+    <table>
+      <tr><th colspan="2">Safety Guards</th></tr>
+      <tr><td>live_trading</td><td><span class="pill ${c.live_trading ? 'bad' : 'good'}">${c.live_trading}</span></td></tr>
+      <tr><td>dry_run</td><td><span class="pill ${c.dry_run ? 'good' : 'warn'}">${c.dry_run}</span></td></tr>
+    </table>
+  `;
+  const entry = c.entry || {};
+  const ex = c.exit || {};
+  el.innerHTML = `
+    <div class="grid">
+      <div>${safety}</div>
+      <div>
+        <table>
+          <tr><th colspan="2">Entry Filters</th></tr>
+          <tr><td>Δ range</td><td>${entry.delta_min} – ${entry.delta_max}</td></tr>
+          <tr><td>DTE range</td><td>${entry.dte_min} – ${entry.dte_max}</td></tr>
+          <tr><td>Min OI</td><td>${entry.min_open_interest}</td></tr>
+          <tr><td>Max spread</td><td>${(entry.max_bid_ask_spread_pct * 100).toFixed(1)}%</td></tr>
+          <tr><td>Min IV rank</td><td>${entry.min_iv_rank}</td></tr>
+          <tr><td>Earnings blackout</td><td>${entry.earnings_blackout_days} days</td></tr>
+        </table>
+      </div>
+      <div>
+        <table>
+          <tr><th colspan="2">Exit Rules</th></tr>
+          <tr><td>Profit take</td><td>${(ex.profit_take_pct * 100).toFixed(0)}%</td></tr>
+          <tr><td>DTE close</td><td>${ex.dte_close} days</td></tr>
+          <tr><td>Roll @ 2× Δ</td><td>${ex.roll_when_delta_doubles ? 'yes' : 'no'}</td></tr>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+async function loadAll() {
+  await Promise.all([loadSummary(), loadCalibration(), loadTrades(), loadConfig()]);
+  document.getElementById('lastUpdated').textContent = '· updated ' + new Date().toLocaleTimeString();
+}
+
+loadAll();
+setInterval(loadAll, 60_000);
+</script>
+</body>
+</html>
