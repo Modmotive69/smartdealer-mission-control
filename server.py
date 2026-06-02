@@ -1,6 +1,6 @@
 from flask import Flask, send_from_directory, request, jsonify, Response, send_file
 import json, os, subprocess, yaml
-from datetime import datetime
+from datetime import datetime, timezone
 
 app = Flask(__name__, static_folder='.')
 
@@ -1423,6 +1423,264 @@ def api_forecaster_backtest():
     return jsonify(bt)
 
 
+# ─── Forecaster weight management: preview, override apply, history ──────
+import threading as _fc_thread
+import tempfile as _fc_tempfile
+import os as _fc_os
+
+_FC_OVERRIDE_PATH = FORECASTER_DIR / 'weights_override.json'
+_FC_HISTORY_PATH = FORECASTER_DIR / 'weight_history.json'
+_FC_LOCK = _fc_thread.Lock()
+_FC_KNOWN_SOURCES = (
+    'top_trader_signal',
+    'analyst_signal',
+    'news_sentiment_signal',
+    'politician_signal',
+)
+
+
+def _fc_validate_weights(payload: dict) -> tuple[bool, str, dict]:
+    """
+    Validate a proposed weights dict. Returns (ok, error_message, cleaned).
+    Rules:
+      - All 4 known sources must be present (use 0 to disable a source).
+      - Each weight numeric, finite, in [0, 1].
+      - Sum of source weights must be in [0.5, 1.5] (we renormalize in math,
+        but reject obvious typos like all-zero or 5.0).
+      - _max_single_source_weight in (0, 1] if present.
+      - _multi_signal_bonus in [0, 1] if present.
+    """
+    if not isinstance(payload, dict):
+        return False, 'payload must be an object', {}
+    cleaned = {}
+    total = 0.0
+    for src in _FC_KNOWN_SOURCES:
+        raw = payload.get(src, None)
+        if raw is None:
+            return False, f'missing weight for {src}', {}
+        try:
+            v = float(raw)
+        except (TypeError, ValueError):
+            return False, f'weight for {src} must be numeric', {}
+        if not (v == v) or v in (float('inf'), float('-inf')):
+            return False, f'weight for {src} must be finite', {}
+        if v < 0 or v > 1:
+            return False, f'weight for {src} must be in [0, 1] (got {v})', {}
+        cleaned[src] = v
+        total += v
+    if total <= 0:
+        return False, 'at least one source weight must be > 0', {}
+    if total > 1.5:
+        return False, f'sum of source weights too high ({total:.3f}) — likely typo', {}
+    # Optional metadata fields
+    cap = payload.get('_max_single_source_weight')
+    if cap is not None:
+        try:
+            cap = float(cap)
+        except (TypeError, ValueError):
+            return False, '_max_single_source_weight must be numeric', {}
+        if not (0 < cap <= 1):
+            return False, '_max_single_source_weight must be in (0, 1]', {}
+        cleaned['_max_single_source_weight'] = cap
+    bonus = payload.get('_multi_signal_bonus')
+    if bonus is not None:
+        try:
+            bonus = float(bonus)
+        except (TypeError, ValueError):
+            return False, '_multi_signal_bonus must be numeric', {}
+        if not (0 <= bonus <= 1):
+            return False, '_multi_signal_bonus must be in [0, 1]', {}
+        cleaned['_multi_signal_bonus'] = bonus
+    return True, '', cleaned
+
+
+def _fc_run_composite_with_weights(weights_dict: dict) -> dict:
+    """
+    Run forecaster.build_composite() with a temporary weights override.
+    Does NOT touch the real override file. Returns the composite report dict.
+    Thread-safe via _FC_LOCK because we monkey-patch a module-level path.
+    """
+    import importlib
+    import sys
+    skill_path = '/Users/scottanderson/.openclaw/workspace/scripts/skills/forecaster'
+    if skill_path not in sys.path:
+        sys.path.insert(0, skill_path)
+    # Fresh import each call so monkey-patched _OVERRIDE doesn't leak.
+    weights_mod = importlib.import_module('weights')
+    composite_mod = importlib.import_module('composite')
+    importlib.reload(weights_mod)
+    importlib.reload(composite_mod)
+
+    # Write proposed weights to a temp file, point _OVERRIDE at it.
+    fd, temp_path = _fc_tempfile.mkstemp(prefix='fc_preview_', suffix='.json')
+    try:
+        with _fc_os.fdopen(fd, 'w') as f:
+            json.dump(weights_dict, f)
+        original_override = weights_mod._OVERRIDE
+        weights_mod._OVERRIDE = pathlib.Path(temp_path)
+        try:
+            report = composite_mod.build_composite()
+        finally:
+            weights_mod._OVERRIDE = original_override
+    finally:
+        try:
+            _fc_os.unlink(temp_path)
+        except OSError:
+            pass
+    return report
+
+
+@app.route('/api/wheel/forecaster/preview', methods=['POST'])
+def api_forecaster_preview():
+    """
+    Body: { 'weights': { 'top_trader_signal': 0.40, ... },
+            'threshold': 5.0 (optional) }
+    Returns top-10 composite under proposed weights WITHOUT persisting.
+    """
+    body = request.get_json(silent=True) or {}
+    weights = body.get('weights') or {}
+    threshold = body.get('threshold')
+    try:
+        threshold = float(threshold) if threshold is not None else 5.0
+    except (TypeError, ValueError):
+        return jsonify({'error': 'threshold must be numeric'}), 400
+    if threshold < 0 or threshold > 20:
+        return jsonify({'error': 'threshold must be in [0, 20]'}), 400
+
+    ok, err, cleaned = _fc_validate_weights(weights)
+    if not ok:
+        return jsonify({'error': err}), 400
+
+    with _FC_LOCK:
+        try:
+            report = _fc_run_composite_with_weights(cleaned)
+        except Exception as exc:  # noqa: BLE001
+            return jsonify({'error': f'preview failed: {exc!r}'}), 500
+
+    tickers = report.get('tickers') or []
+    top_10 = tickers[:10]
+    above = [t for t in tickers if (t.get('score') or 0) >= threshold]
+    return jsonify({
+        'generated_at': report.get('generated_at'),
+        'active_sources': report.get('active_sources', []),
+        'weights_used': report.get('weights_used', {}),
+        'ticker_count': report.get('ticker_count', 0),
+        'above_threshold': len(above),
+        'threshold': threshold,
+        'top_10': top_10,
+        'top_above_threshold': above[:10],
+    })
+
+
+@app.route('/api/wheel/forecaster/override', methods=['GET', 'POST', 'DELETE'])
+def api_forecaster_override():
+    """
+    GET    : return current override file (or null) + history pointer.
+    POST   : { 'weights': {...}, 'note': '...' } — validates, writes
+             weights_override.json, appends to weight_history.json.
+             Takes effect on the forecaster's NEXT scheduled run.
+    DELETE : revert to seed defaults (deletes override file, appends history).
+    """
+    if request.method == 'GET':
+        override = _read_json_safe(_FC_OVERRIDE_PATH, default=None)
+        history = _read_json_safe(_FC_HISTORY_PATH, default={'entries': []}) or {'entries': []}
+        return jsonify({
+            'override_active': override is not None,
+            'override_weights': override,
+            'history_count': len(history.get('entries', [])),
+        })
+
+    with _FC_LOCK:
+        history = _read_json_safe(_FC_HISTORY_PATH, default={'entries': []}) or {'entries': []}
+        entries = history.get('entries', [])
+
+        if request.method == 'DELETE':
+            had_override = _FC_OVERRIDE_PATH.exists()
+            if had_override:
+                try:
+                    _FC_OVERRIDE_PATH.unlink()
+                except OSError as exc:
+                    return jsonify({'error': f'could not delete override: {exc!r}'}), 500
+            entries.append({
+                'ts': datetime.now(timezone.utc).isoformat(timespec='seconds').replace('+00:00', 'Z'),
+                'action': 'revert_to_seed',
+                'note': (request.get_json(silent=True) or {}).get('note', ''),
+                'had_override': had_override,
+            })
+            history['entries'] = entries[-200:]  # cap log size
+            try:
+                _FC_HISTORY_PATH.write_text(json.dumps(history, indent=2))
+            except OSError as exc:
+                return jsonify({'error': f'could not write history: {exc!r}'}), 500
+            return jsonify({'ok': True, 'action': 'revert_to_seed', 'had_override': had_override})
+
+        # POST
+        body = request.get_json(silent=True) or {}
+        weights = body.get('weights') or {}
+        note = str(body.get('note', ''))[:500]
+        ok, err, cleaned = _fc_validate_weights(weights)
+        if not ok:
+            return jsonify({'error': err}), 400
+
+        # Preserve any annotations from seed file the user didn't touch.
+        seed = _read_json_safe(FORECASTER_SEED, default={}) or {}
+        merged = {}
+        for src in _FC_KNOWN_SOURCES:
+            merged[src] = cleaned[src]
+        merged['_max_single_source_weight'] = cleaned.get(
+            '_max_single_source_weight',
+            seed.get('_max_single_source_weight', 0.40),
+        )
+        merged['_multi_signal_bonus'] = cleaned.get(
+            '_multi_signal_bonus',
+            seed.get('_multi_signal_bonus', 0.15),
+        )
+        merged['_redistribute_on_missing'] = seed.get('_redistribute_on_missing', True)
+        merged['_calibration_status'] = 'override_active'
+        merged['_calibration_date'] = datetime.now(timezone.utc).date().isoformat()
+
+        # Write override atomically: write to .tmp then rename.
+        try:
+            FORECASTER_DIR.mkdir(parents=True, exist_ok=True)
+            tmp_path = _FC_OVERRIDE_PATH.with_suffix('.json.tmp')
+            tmp_path.write_text(json.dumps(merged, indent=2))
+            tmp_path.replace(_FC_OVERRIDE_PATH)
+        except OSError as exc:
+            return jsonify({'error': f'could not write override: {exc!r}'}), 500
+
+        entries.append({
+            'ts': datetime.now(timezone.utc).isoformat(timespec='seconds').replace('+00:00', 'Z'),
+            'action': 'apply_override',
+            'note': note,
+            'weights': {src: cleaned[src] for src in _FC_KNOWN_SOURCES},
+            'meta': {
+                '_max_single_source_weight': merged['_max_single_source_weight'],
+                '_multi_signal_bonus': merged['_multi_signal_bonus'],
+            },
+        })
+        history['entries'] = entries[-200:]
+        try:
+            _FC_HISTORY_PATH.write_text(json.dumps(history, indent=2))
+        except OSError as exc:
+            return jsonify({'error': f'could not write history: {exc!r}'}), 500
+
+        return jsonify({
+            'ok': True,
+            'action': 'apply_override',
+            'override_weights': merged,
+            'takes_effect': 'on next forecaster cron run (daily 9:30 AM ET)',
+        })
+
+
+@app.route('/api/wheel/forecaster/history')
+def api_forecaster_history():
+    history = _read_json_safe(_FC_HISTORY_PATH, default={'entries': []}) or {'entries': []}
+    return jsonify({
+        'count': len(history.get('entries', [])),
+        'entries': history.get('entries', [])[-50:],  # last 50 only
+    })
+
+
 # ─── Investor Engine (master dashboard aggregator) ───────────────────────
 # Single composite endpoint + Alpaca proxy + auto-insights + candidate names.
 # Server-side TTL cache keeps round-trips cheap.
@@ -2335,6 +2593,99 @@ def investor_engine_dashboard():
     if dash.exists():
         return dash.read_text()
     return '<h1>Investor Engine dashboard not yet built</h1>', 404
+
+
+# ─── OpenAI usage (for Friend Agents tile) ──────────────────────────────
+_openai_usage_cache = {'ts': 0, 'data': None}
+
+def _openai_admin_request(path, params):
+    keys = _load_alpaca_env()
+    admin_key = keys.get('OPENAI_ADMIN_KEY', '')
+    if not admin_key:
+        return {'error': 'OPENAI_ADMIN_KEY not configured in .env'}
+    qs = '&'.join(f'{k}={v}' for k, v in params.items())
+    url = f'https://api.openai.com/v1/organization/{path}?{qs}'
+    req = _urlreq.Request(url, headers={'Authorization': f'Bearer {admin_key}'})
+    try:
+        resp = _urlreq.urlopen(req, timeout=15)
+        return json.loads(resp.read())
+    except _urlerr.HTTPError as e:
+        return {'error': f'HTTP {e.code}', 'detail': e.read().decode()[:300]}
+    except Exception as e:
+        return {'error': str(e)}
+
+def _sum_cost_buckets(payload):
+    """Sum cost values across buckets returned by /v1/organization/costs."""
+    total = 0.0
+    per_day = []
+    if not isinstance(payload, dict):
+        return 0.0, []
+    for bucket in payload.get('data', []):
+        day_total = 0.0
+        for r in bucket.get('results', []):
+            amt = r.get('amount', {})
+            try:
+                day_total += float(amt.get('value', 0) or 0)
+            except (ValueError, TypeError):
+                pass
+        per_day.append({
+            'date': bucket.get('start_time_iso', '')[:10],
+            'cost_usd': round(day_total, 6),
+        })
+        total += day_total
+    return round(total, 6), per_day
+
+def _sum_completions_buckets(payload):
+    """Sum token counts across buckets returned by /v1/organization/usage/completions."""
+    tin = tout = 0
+    if not isinstance(payload, dict):
+        return 0, 0
+    for bucket in payload.get('data', []):
+        for r in bucket.get('results', []):
+            tin += int(r.get('input_tokens', 0) or 0)
+            tout += int(r.get('output_tokens', 0) or 0)
+    return tin, tout
+
+@app.route('/api/openai-usage')
+def api_openai_usage():
+    """Pull OpenAI org-level usage + cost via admin key. Cached 5 minutes."""
+    import time
+    now = time.time()
+    if _openai_usage_cache['data'] and (now - _openai_usage_cache['ts']) < 300:
+        return jsonify(_openai_usage_cache['data'])
+
+    now_ts = int(now)
+    day = 86400
+    starts = {
+        'today':  now_ts - (now_ts % day),
+        '7d':     now_ts - 7 * day,
+        '30d':    now_ts - 30 * day,
+    }
+    result = {'updated_at': datetime.now(timezone.utc).isoformat(), 'periods': {}, 'has_admin_key': True}
+    keys = _load_alpaca_env()
+    if not keys.get('OPENAI_ADMIN_KEY'):
+        result['has_admin_key'] = False
+        result['error'] = 'OPENAI_ADMIN_KEY missing'
+        return jsonify(result)
+
+    for label, start in starts.items():
+        cost_payload = _openai_admin_request('costs', {'start_time': start, 'bucket_width': '1d', 'limit': 31})
+        usage_payload = _openai_admin_request('usage/completions', {'start_time': start, 'bucket_width': '1d', 'limit': 31})
+        if 'error' in cost_payload:
+            result['periods'][label] = {'error': cost_payload.get('error'), 'detail': cost_payload.get('detail')}
+            continue
+        total_cost, per_day = _sum_cost_buckets(cost_payload)
+        tin, tout = _sum_completions_buckets(usage_payload) if 'error' not in usage_payload else (0, 0)
+        result['periods'][label] = {
+            'cost_usd': total_cost,
+            'input_tokens': tin,
+            'output_tokens': tout,
+            'per_day': per_day,
+        }
+
+    _openai_usage_cache['ts'] = now
+    _openai_usage_cache['data'] = result
+    return jsonify(result)
 
 
 if __name__ == '__main__':
