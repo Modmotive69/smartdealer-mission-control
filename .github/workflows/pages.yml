@@ -6,8 +6,7 @@ on:
   workflow_dispatch:
 
 # Only one Pages deploy at a time. A newer sync push cancels any in-flight
-# run instead of piling up colliding builds. The colliding legacy builds
-# were the root cause of the ~144 build runs/day + transient-flake email flood.
+# run instead of piling up colliding builds.
 concurrency:
   group: pages
   cancel-in-progress: true
@@ -22,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      url: ${{ steps.deploy1.outputs.page_url || steps.deploy2.outputs.page_url || steps.deploy3.outputs.page_url }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -35,6 +34,39 @@ jobs:
         with:
           path: '.'
 
-      - name: Deploy to GitHub Pages
-        id: deployment
+      # GitHub's Pages deploy API flakes with "Deployment failed, try again
+      # later." on a meaningful fraction of runs. That transient flake is what
+      # emails us. We retry the deploy step up to 3 times so the flake
+      # self-heals and the run finishes green (no email).
+      - name: Deploy to GitHub Pages (attempt 1)
+        id: deploy1
+        continue-on-error: true
         uses: actions/deploy-pages@v4
+        with:
+          timeout: 600000
+          error_count: 15
+
+      - name: Wait before retry 2
+        if: steps.deploy1.outcome == 'failure'
+        run: sleep 20
+
+      - name: Deploy to GitHub Pages (attempt 2)
+        id: deploy2
+        if: steps.deploy1.outcome == 'failure'
+        continue-on-error: true
+        uses: actions/deploy-pages@v4
+        with:
+          timeout: 600000
+          error_count: 15
+
+      - name: Wait before retry 3
+        if: steps.deploy1.outcome == 'failure' && steps.deploy2.outcome == 'failure'
+        run: sleep 30
+
+      - name: Deploy to GitHub Pages (attempt 3)
+        id: deploy3
+        if: steps.deploy1.outcome == 'failure' && steps.deploy2.outcome == 'failure'
+        uses: actions/deploy-pages@v4
+        with:
+          timeout: 600000
+          error_count: 15
